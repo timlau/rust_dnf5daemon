@@ -12,6 +12,6 @@ async fn daemon_test() {
         println!("{} - {}", pkg.nevra, pkg.size);
     }
     assert!(packages.len() > 0);
-    dnf_daemon.close().await;
+    dnf_daemon.close().await.unwrap();
     assert_eq!(dnf_daemon.connected, false);
 }

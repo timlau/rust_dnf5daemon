@@ -30,7 +30,7 @@ impl DnfDaemon {
             .open_session(HashMap::new())
             .await
             .expect("Error: cant open dnf5daemon session");
-        // let reply = proxy.open_session(HashMap::new()).await?;
+
         let base = dnf::proxy::BaseProxy::builder(&connection)
             .path(path.clone())
             .unwrap()
@@ -39,7 +39,7 @@ impl DnfDaemon {
             .build()
             .await
             .expect("Error: cant connect to org.rpm.dnf.v0.Base");
-        // dbg!(&base);
+
         let rpm = dnf::proxy::RpmProxy::builder(&connection)
             .path(path.clone())
             .unwrap()
@@ -50,7 +50,6 @@ impl DnfDaemon {
             .expect("Error: cant connect to org.rpm.dnf.v0.Rpm");
 
         Self {
-            // connection: connection,
             session_manager: proxy,
             path: path,
             base: base,
@@ -59,7 +58,7 @@ impl DnfDaemon {
         }
     }
 
-    pub async fn close(&mut self) {
+    pub async fn close(&mut self) -> Result<bool, &str> {
         if self.connected {
             let obj_path = self.path.as_ref();
             self.session_manager
@@ -67,8 +66,10 @@ impl DnfDaemon {
                 .await
                 .expect("Error: cant close dnf5daemon session");
             self.connected = false;
+            return Ok(self.connected.clone());
         } else {
             println!("Connection is not open");
+            return Err("Connrction is not open");
         }
     }
 }
