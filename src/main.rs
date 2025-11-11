@@ -1,6 +1,5 @@
-mod dnf;
-use dnf::daemon::DnfDaemon;
-use dnf::package::get_packages;
+use dnf5daemon::daemon::DnfDaemon;
+use dnf5daemon::package::get_packages;
 use std::error::Error;
 
 // Although we use `tokio` here, you can use any async runtime of choice.
@@ -12,7 +11,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
     for pkg in packages {
         println!("{} - {}", pkg.nevra, pkg.size);
     }
-    dnf_daemon.close().await;
 
+    if dnf_daemon.close().await.is_err() {
+        println!("Close failed");
+    }
     Ok(())
 }

@@ -1,4 +1,5 @@
-use crate::dnf;
+use crate::dnf::daemon::DnfDaemon;
+use crate::dnf::proxy::ListResults;
 use std::collections::HashMap;
 use zbus::zvariant::{OwnedValue, Value};
 
@@ -27,7 +28,7 @@ impl DnfPackage {
 }
 
 /// Get packages by calling org.rpm.dnf.v0.rpm.Rpm.list()
-pub async fn get_packages(daemon: &dnf::daemon::DnfDaemon, patterns: &[&str]) -> Vec<DnfPackage> {
+pub async fn get_packages(daemon: &DnfDaemon, patterns: &[&str]) -> Vec<DnfPackage> {
     // Setup query options for use with org.rpm.dnf.v0.rpm.Rpm.list()
     // check here for details
     // https://dnf5.readthedocs.io/en/latest/dnf_daemon/dnf5daemon_dbus_api.8.html#org.rpm.dnf.v0.rpm.Rpm.list
@@ -51,7 +52,7 @@ pub async fn get_packages(daemon: &dnf::daemon::DnfDaemon, patterns: &[&str]) ->
 }
 
 /// Convert the package HashMap's returnend by zbus to DnfPackage objects
-pub fn build_packages(pkgs: &dnf::proxy::ListResults) -> Vec<DnfPackage> {
+pub fn build_packages(pkgs: &ListResults) -> Vec<DnfPackage> {
     let mut packages = Vec::new();
     for pkg in &pkgs.items {
         packages.push(DnfPackage::from(pkg));
