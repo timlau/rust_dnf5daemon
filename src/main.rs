@@ -1,6 +1,6 @@
 mod dnf;
 use dnf::daemon::DnfDaemon;
-use dnf::pacakge::get_packages;
+use dnf::package::get_packages;
 use std::error::Error;
 
 // Although we use `tokio` here, you can use any async runtime of choice.
