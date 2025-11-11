@@ -1,7 +1,10 @@
 [package]
-name = "rust_dnf5daemon"
+name = "dnf5daemon"
 version = "0.1.0"
 edition = "2024"
+
+[[test]]
+name = "integration_test"
 
 [dependencies]
 serde = "1.0.228"

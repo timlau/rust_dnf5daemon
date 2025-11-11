@@ -11,7 +11,7 @@ pub struct DnfDaemon {
     // TODO: Add the rest df the interfaces from DNF5daemon
     pub base: dnf::proxy::BaseProxy<'static>,
     pub rpm: dnf::proxy::RpmProxy<'static>,
-    connected: bool,
+    pub connected: bool,
 }
 
 /// methods to open/close the connection to Dnf5Daemon and setup proxies for the used interfaces
