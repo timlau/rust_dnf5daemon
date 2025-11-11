@@ -4,15 +4,18 @@ use zbus::{Connection, zvariant::OwnedObjectPath};
 
 use crate::dnf;
 
+/// Structure to store the state of the DBus connection to Dnf5daemon
 pub struct DnfDaemon {
-    // connection: Connection,
     pub session_manager: dnf::proxy::SessionManagerProxy<'static>,
     pub path: OwnedObjectPath,
+    // TODO: Add the rest df the interfaces from DNF5daemon
     pub base: dnf::proxy::BaseProxy<'static>,
     pub rpm: dnf::proxy::RpmProxy<'static>,
     connected: bool,
 }
 
+/// methods to open/close the connection to Dnf5Daemon and setup proxies for the used interfaces
+// TODO: implement the rest of the Dnf5Daemon interfaces.
 impl DnfDaemon {
     pub async fn new() -> Self {
         let connection = Connection::system()
