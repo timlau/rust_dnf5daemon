@@ -1,6 +1,6 @@
 use crate::dnf::daemon::DnfDaemon;
 use crate::dnf::proxy::ListResults;
-use serde::{Deserialize, Serialize, ser::SerializeStructVariant};
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use zbus::zvariant::{OwnedValue, Type, Value};
 
