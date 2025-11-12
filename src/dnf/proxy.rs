@@ -181,7 +181,7 @@ pub trait Rpm {
 
     /// list method
     #[zbus(name = "list")]
-    fn list(&self, options: HashMap<&str, &Value<'_>>) -> zbus::Result<ListResults>;
+    fn list(&self, options: HashMap<String, Value<'_>>) -> zbus::Result<ListResults>;
 
     /// list_fd method
     #[zbus(name = "list_fd")]
