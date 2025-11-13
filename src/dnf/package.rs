@@ -8,9 +8,11 @@ const RPM_LIST_ATTR: &[&str] = &["nevra", "install_size"];
 
 /// Macro to convert a variant store under a given key in a HashMap into a given native type
 macro_rules! from_variant {
-    ($pkg: expr,$typ:ty, $field:ident) => {
-        <$typ>::try_from($pkg.get(stringify!($field)).unwrap().to_owned())
-            .expect(concat!("Can't convert ", stringify!($field)))
+    ($pkg: expr,$typ:ty, $field:literal) => {
+        match $pkg.get($field) {
+            Some(v) => <$typ>::try_from(v.to_owned()).expect(concat!("Can't convert ", $field)),
+            _ => panic!(concat!($field, " was not found in HashMap")),
+        }
     };
 }
 
@@ -45,8 +47,8 @@ pub struct DnfPackage {
 impl DnfPackage {
     pub fn from(pkg: &HashMap<String, OwnedValue>) -> DnfPackage {
         Self {
-            nevra: from_variant!(pkg, String, nevra),
-            size: from_variant!(pkg, u64, install_size),
+            nevra: from_variant!(pkg, String, "nevra"),
+            size: from_variant!(pkg, u64, "install_size"),
         }
     }
 }
