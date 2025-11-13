@@ -7,10 +7,10 @@ use zbus::zvariant::{OwnedValue, Type, Value};
 const RPM_LIST_ATTR: &[&str] = &["nevra", "install_size"];
 
 /// Macro to convert a variant store under a given key in a HashMap into a given native type
-macro_rules! native_value {
+macro_rules! from_variant {
     ($pkg: expr,$typ:ty, $field:ident) => {
         <$typ>::try_from($pkg.get(stringify!($field)).unwrap().to_owned())
-            .expect("Can't convert $field")
+            .expect(concat!("Can't convert ", stringify!($field)))
     };
 }
 
@@ -45,8 +45,8 @@ pub struct DnfPackage {
 impl DnfPackage {
     pub fn from(pkg: &HashMap<String, OwnedValue>) -> DnfPackage {
         Self {
-            nevra: native_value!(pkg, String, nevra),
-            size: native_value!(pkg, u64, install_size),
+            nevra: from_variant!(pkg, String, nevra),
+            size: from_variant!(pkg, u64, install_size),
         }
     }
 }
@@ -73,8 +73,7 @@ impl ListOptions {
     /// Generate a HashMap with key/value (as variant) pairs to use for Dbus
     fn to_dbus(&self) -> HashMap<String, Value<'_>> {
         let mut options = HashMap::new();
-        // HashMap, self.<fieldname>
-        // will add a "<fieldname": Value(self.<fieldname>) entry to the map
+        // Add a "<fieldname": Value(self.<fieldname>) entry to the map
         insert_field!(options, self.package_attrs);
         insert_field!(options, self.patterns);
         insert_field!(options, self.scope);
