@@ -14,12 +14,21 @@ macro_rules! native_value {
     };
 }
 
+/// Macro to put a expression into a variant (zvariant::Value)
+macro_rules! to_variant {
+    ($var:expr) => {
+        zbus::zvariant::Value::new($var)
+    }
+}
+
 /// Macro to insert a struct field in a variant type into a HashMap with same name as the field
+/// insert_field! (map, self.fieldname) will add a "<fieldname>": Value(self.<fieldname>) entry
+/// to the map
 macro_rules! insert_field {
-    ($map:expr, $obj:expr,$typ:ty, $field:ident) => {
+    ($map:expr, $self_:ident.$field:ident) => {
         $map.insert(
             stringify!($field).to_string(),
-            <$typ>::new($obj.$field.to_owned()),
+            to_variant!($self_.$field.to_owned()),
         );
     };
 }
@@ -64,16 +73,17 @@ impl ListOptions {
     /// Generate a HashMap with key/value (as variant) pairs to use for Dbus
     fn to_dbus(&self) -> HashMap<String, Value<'_>> {
         let mut options = HashMap::new();
-        // HashMap, stuct instance, variant type, fieldname
-        insert_field!(options, self, Value, package_attrs);
-        insert_field!(options, self, Value, patterns);
-        insert_field!(options, self, Value, scope);
-        insert_field!(options, self, Value, icase);
-        insert_field!(options, self, Value, with_src);
-        insert_field!(options, self, Value, with_nevra);
-        insert_field!(options, self, Value, with_provides);
-        insert_field!(options, self, Value, with_filenames);
-        insert_field!(options, self, Value, with_binaries);
+        // HashMap, self.<fieldname>
+        // will add a "<fieldname": Value(self.<fieldname>) entry to the map
+        insert_field!(options, self.package_attrs);
+        insert_field!(options, self.patterns);
+        insert_field!(options, self.scope);
+        insert_field!(options, self.icase);
+        insert_field!(options, self.with_src);
+        insert_field!(options, self.with_nevra);
+        insert_field!(options, self.with_provides);
+        insert_field!(options, self.with_filenames);
+        insert_field!(options, self.with_binaries);
         options
     }
 }
