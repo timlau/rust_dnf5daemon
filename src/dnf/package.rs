@@ -10,7 +10,12 @@ const RPM_LIST_ATTR: &[&str] = &["nevra", "install_size"];
 macro_rules! from_variant {
     ($pkg: expr,$typ:ty, $field:literal) => {
         match $pkg.get($field) {
-            Some(v) => <$typ>::try_from(v.to_owned()).expect(concat!("Can't convert ", $field)),
+            Some(v) => <$typ>::try_from(v.to_owned()).expect(concat!(
+                "Can't convert ",
+                $field,
+                " to ",
+                stringify!($typ)
+            )),
             _ => panic!(concat!($field, " was not found in HashMap")),
         }
     };
