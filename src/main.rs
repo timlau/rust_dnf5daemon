@@ -1,5 +1,5 @@
-#![allow(unreachable_code)]
-#![allow(unused_variables)]
+// #![allow(unreachable_code)]
+// #![allow(unused_variables)]
 // #![allow(unused_imports)]
 // #![allow(unused_mut)]
 
@@ -10,7 +10,6 @@ use log::info;
 use std::env;
 use std::error::Error;
 
-// Although we use `tokio` here, you can use any async runtime of choice.
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
     // Setup logging
