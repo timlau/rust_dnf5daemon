@@ -6,8 +6,6 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use zbus::zvariant::{OwnedValue, Type, Value};
 
-const RPM_LIST_ATTR: &[&str] = &["nevra", "install_size"];
-
 /// Macro to convert a variant store under a given key in a HashMap into a given native type
 macro_rules! from_variant {
     ($pkg: expr,$typ:ty, $field:literal) => {
@@ -124,9 +122,9 @@ impl ListOptionsBuilder {
         }
     }
 
-    fn attrs(mut self, attrs: &[&str]) -> ListOptionsBuilder {
+    fn attrs(mut self, attrs: &Vec<String>) -> ListOptionsBuilder {
         for attr in attrs {
-            self.package_attrs.push(String::from(*attr));
+            self.package_attrs.push(attr.to_owned());
         }
         self
     }
@@ -135,6 +133,11 @@ impl ListOptionsBuilder {
         for pat in patterns {
             self.patterns.push(pat.to_owned());
         }
+        self
+    }
+
+    fn scope(mut self, scope: String) -> ListOptionsBuilder {
+        self.scope = scope.to_owned();
         self
     }
 
@@ -153,13 +156,19 @@ impl ListOptionsBuilder {
     }
 }
 /// Get packages by calling org.rpm.dnf.v0.rpm.Rpm.list()
-pub async fn get_packages(daemon: &DnfDaemon, patterns: &Vec<String>) -> Vec<DnfPackage> {
+pub async fn get_packages(
+    daemon: &DnfDaemon,
+    patterns: &Vec<String>,
+    scope: &String,
+) -> Vec<DnfPackage> {
     // Setup query options for use with org.rpm.dnf.v0.rpm.Rpm.list()
     // check here for details
     // https://dnf5.readthedocs.io/en/latest/dnf_daemon/dnf5daemon_dbus_api.8.html#org.rpm.dnf.v0.rpm.Rpm.list
+    let attrs: Vec<String> = vec!["nevra".to_owned(), "install_size".to_owned()];
     let options = ListOptions::builder()
-        .attrs(RPM_LIST_ATTR)
+        .attrs(&attrs)
         .patterns(patterns)
+        .scope(scope.to_owned())
         .build();
     debug!("{:?}", options.to_dbus());
 

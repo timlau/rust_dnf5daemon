@@ -10,7 +10,7 @@ async fn daemon_test() {
     let rc = dnf_daemon.base.read_all_repos().await.ok().unwrap();
     assert_eq!(rc, true);
     let pattern: Vec<String> = vec!["dnf5*".to_owned()];
-    let packages = &get_packages(&dnf_daemon, &pattern).await;
+    let packages = &get_packages(&dnf_daemon, &pattern, &"all".to_owned()).await;
     for pkg in packages {
         info!("{} - {}", pkg.nevra, pkg.size);
     }
