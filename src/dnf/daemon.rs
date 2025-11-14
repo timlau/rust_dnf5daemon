@@ -1,3 +1,5 @@
+#![allow(unused_imports)]
+use log::{debug, info, trace, warn};
 use std::collections::HashMap;
 
 use zbus::{Connection, zvariant::OwnedObjectPath};
@@ -93,7 +95,7 @@ impl DnfDaemon {
             .build()
             .await
             .expect("Error: cant connect to org.rpm.dnf.v0.Offline");
-
+        debug!("dnf5daemon session opened : {path}");
         Self {
             session_manager: proxy,
             path: path,
@@ -117,8 +119,19 @@ impl DnfDaemon {
             self.connected = false;
             return Ok(self.connected.clone());
         } else {
-            println!("Connection is not open");
-            return Err("Connrction is not open");
+            warn!("Connection is not open");
+            return Err("Connection is not open");
+        }
+    }
+}
+
+impl Drop for DnfDaemon {
+    fn drop(&mut self) {
+        if self.connected {
+            match futures::executor::block_on(self.close()) {
+                Ok(_) => debug!("Dnfdaemon closed"),
+                Err(e) => warn!("Dnfdaemon close error : {}", e),
+            }
         }
     }
 }
