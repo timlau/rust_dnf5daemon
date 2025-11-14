@@ -8,20 +8,23 @@ use crate::dnf;
 pub struct DnfDaemon {
     pub session_manager: dnf::proxy::SessionManagerProxy<'static>,
     pub path: OwnedObjectPath,
-    // TODO: Add the rest df the interfaces from DNF5daemon
     pub base: dnf::proxy::BaseProxy<'static>,
     pub rpm: dnf::proxy::RpmProxy<'static>,
+    pub repo: dnf::proxy::RepoProxy<'static>,
+    pub group: dnf::proxy::GroupProxy<'static>,
+    pub offline: dnf::proxy::OfflineProxy<'static>,
+    pub advisory: dnf::proxy::AdvisoryProxy<'static>,
     pub connected: bool,
 }
 
 /// methods to open/close the connection to Dnf5Daemon and setup proxies for the used interfaces
-// TODO: implement the rest of the Dnf5Daemon interfaces.
 impl DnfDaemon {
     pub async fn new() -> Self {
         let connection = Connection::system()
             .await
             .expect("Error: can't connect to system bus");
 
+        // proxy for interface org.rpm.dnf.v0.SessionManger
         let proxy = dnf::proxy::SessionManagerProxy::new(&connection)
             .await
             .expect("Error: can make dbus connection");
@@ -31,6 +34,7 @@ impl DnfDaemon {
             .await
             .expect("Error: cant open dnf5daemon session");
 
+        // proxy for interface org.rpm.dnf.v0.Base
         let base = dnf::proxy::BaseProxy::builder(&connection)
             .path(path.clone())
             .unwrap()
@@ -40,6 +44,7 @@ impl DnfDaemon {
             .await
             .expect("Error: cant connect to org.rpm.dnf.v0.Base");
 
+        // proxy for interface org.rpm.dnf.v0.Rpm
         let rpm = dnf::proxy::RpmProxy::builder(&connection)
             .path(path.clone())
             .unwrap()
@@ -49,11 +54,55 @@ impl DnfDaemon {
             .await
             .expect("Error: cant connect to org.rpm.dnf.v0.Rpm");
 
+        // proxy for interface org.rpm.dnf.v0.Repo
+        let repo = dnf::proxy::RepoProxy::builder(&connection)
+            .path(path.clone())
+            .unwrap()
+            .destination("org.rpm.dnf.v0")
+            .unwrap()
+            .build()
+            .await
+            .expect("Error: cant connect to org.rpm.dnf.v0.Repo");
+
+        // proxy for interface org.rpm.dnf.v0.Group
+        let group = dnf::proxy::GroupProxy::builder(&connection)
+            .path(path.clone())
+            .unwrap()
+            .destination("org.rpm.dnf.v0")
+            .unwrap()
+            .build()
+            .await
+            .expect("Error: cant connect to org.rpm.dnf.v0.Group");
+
+        // proxy for interface org.rpm.dnf.v0.Advisory
+        let advisory = dnf::proxy::AdvisoryProxy::builder(&connection)
+            .path(path.clone())
+            .unwrap()
+            .destination("org.rpm.dnf.v0")
+            .unwrap()
+            .build()
+            .await
+            .expect("Error: cant connect to org.rpm.dnf.v0.Advisory");
+
+        // proxy for interface org.rpm.dnf.v0.Offline
+        let offline = dnf::proxy::OfflineProxy::builder(&connection)
+            .path(path.clone())
+            .unwrap()
+            .destination("org.rpm.dnf.v0")
+            .unwrap()
+            .build()
+            .await
+            .expect("Error: cant connect to org.rpm.dnf.v0.Offline");
+
         Self {
             session_manager: proxy,
             path: path,
             base: base,
             rpm: rpm,
+            repo: repo,
+            group: group,
+            offline: offline,
+            advisory: advisory,
             connected: true,
         }
     }
