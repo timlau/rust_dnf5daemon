@@ -9,7 +9,8 @@ async fn daemon_test() {
     assert_eq!(dnf_daemon.connected, true);
     let rc = dnf_daemon.base.read_all_repos().await.ok().unwrap();
     assert_eq!(rc, true);
-    let packages = &get_packages(&dnf_daemon, &["yum*"]).await;
+    let pattern: Vec<String> = vec!["dnf5*".to_owned()];
+    let packages = &get_packages(&dnf_daemon, &pattern).await;
     for pkg in packages {
         info!("{} - {}", pkg.nevra, pkg.size);
     }

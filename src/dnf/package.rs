@@ -131,9 +131,9 @@ impl ListOptionsBuilder {
         self
     }
 
-    fn patterns(mut self, patterns: &[&str]) -> ListOptionsBuilder {
+    fn patterns(mut self, patterns: &Vec<String>) -> ListOptionsBuilder {
         for pat in patterns {
-            self.patterns.push(String::from(*pat));
+            self.patterns.push(pat.to_owned());
         }
         self
     }
@@ -153,7 +153,7 @@ impl ListOptionsBuilder {
     }
 }
 /// Get packages by calling org.rpm.dnf.v0.rpm.Rpm.list()
-pub async fn get_packages(daemon: &DnfDaemon, patterns: &[&str]) -> Vec<DnfPackage> {
+pub async fn get_packages(daemon: &DnfDaemon, patterns: &Vec<String>) -> Vec<DnfPackage> {
     // Setup query options for use with org.rpm.dnf.v0.rpm.Rpm.list()
     // check here for details
     // https://dnf5.readthedocs.io/en/latest/dnf_daemon/dnf5daemon_dbus_api.8.html#org.rpm.dnf.v0.rpm.Rpm.list
