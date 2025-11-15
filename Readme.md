@@ -1,36 +1,17 @@
-# Rust module to demo use of dnf5 dbus API from Rust.
+# Rust crate to demo use of dnf5 dbus API-
 
-The code and is under heavy development and is not meant to be used as is
+The code and is under heavy development and no way complete
 But can be used for inspiration on how to use the dnf5 dbus API
 
 (C) 2025 Tim Lauridsen
 
 License: MIT
 
-## How to run
-The module contains a simple binary there give an output like `dnf list <pattern>`
+## How to test
 
-### Examples (using cargo run)
-```bash
-cargo run -- dnf5*
-cargo run -- dnf5* yum* --scope installed
-```
+I have created a simple demo application located here:
 
-### Usage
-```bash
-
-Usage: dnf5daemon [OPTIONS] [PATTERNS]...
-
-Arguments:
-  [PATTERNS]...  packages to search for
-
-Options:
-  --scope <SCOPE>      Package scope [default: all] [possible values: all, installed, available]
-  -d, --debug          Enable debug logging
-  -h, --help           Print help
-  -V, --version        Print version
-```
-
+https://github.com/timlau/minidnf
 
 
 ## Links
