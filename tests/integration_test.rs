@@ -1,7 +1,6 @@
 use dnf5daemon::dnf::daemon::DnfDaemon;
 use dnf5daemon::dnf::package::get_packages;
 
-use log::info;
 #[tokio::test]
 async fn daemon_test() {
     env_logger::init();
@@ -12,7 +11,7 @@ async fn daemon_test() {
     let pattern: Vec<String> = vec!["dnf5*".to_owned()];
     let packages = &get_packages(&dnf_daemon, &pattern, &"all".to_owned()).await;
     for pkg in packages {
-        info!("{} - {}", pkg.nevra, pkg.size);
+        println!("{:?}", pkg);
     }
     assert!(packages.len() > 0);
     dnf_daemon.close().await.unwrap();

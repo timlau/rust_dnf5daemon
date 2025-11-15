@@ -44,7 +44,11 @@ macro_rules! insert_field {
 pub struct DnfPackage {
     // TODO: Split the nevra up into the sub parts
     // TODO: Add more usefule fields : repo, summary
-    pub nevra: String,
+    pub name: String,
+    pub arch: String,
+    pub evr: String,
+    pub repo_id: String,
+    pub is_installed: bool,
     pub size: u64,
 }
 
@@ -52,7 +56,11 @@ pub struct DnfPackage {
 impl DnfPackage {
     pub fn from(pkg: &HashMap<String, OwnedValue>) -> DnfPackage {
         Self {
-            nevra: from_variant!(pkg, String, "nevra"),
+            name: from_variant!(pkg, String, "name"),
+            arch: from_variant!(pkg, String, "arch"),
+            evr: from_variant!(pkg, String, "evr"),
+            repo_id: from_variant!(pkg, String, "repo_id"),
+            is_installed: from_variant!(pkg, bool, "is_installed"),
             size: from_variant!(pkg, u64, "install_size"),
         }
     }
@@ -164,7 +172,14 @@ pub async fn get_packages(
     // Setup query options for use with org.rpm.dnf.v0.rpm.Rpm.list()
     // check here for details
     // https://dnf5.readthedocs.io/en/latest/dnf_daemon/dnf5daemon_dbus_api.8.html#org.rpm.dnf.v0.rpm.Rpm.list
-    let attrs: Vec<String> = vec!["nevra".to_owned(), "install_size".to_owned()];
+    let attrs: Vec<String> = vec![
+        "name".to_owned(),
+        "install_size".to_owned(),
+        "arch".to_owned(),
+        "evr".to_owned(),
+        "repo_id".to_owned(),
+        "is_installed".to_owned(),
+    ];
     let options = ListOptions::builder()
         .attrs(&attrs)
         .patterns(patterns)
