@@ -40,10 +40,10 @@ macro_rules! insert_field {
     };
 }
 
+/// a native rust struct to represent a dnf package
+/// it is designed to be used with get_packages
 #[derive(Debug)]
 pub struct DnfPackage {
-    // TODO: Split the nevra up into the sub parts
-    // TODO: Add more usefule fields : repo, summary
     pub name: String,
     pub arch: String,
     pub evr: String,
@@ -52,8 +52,17 @@ pub struct DnfPackage {
     pub size: u64,
 }
 
+impl AsRef<DnfPackage> for DnfPackage {
+    fn as_ref(&self) -> &DnfPackage {
+        self
+    }
+}
+
 // TODO: Add setup for more useful fields, when they are added to struct
 impl DnfPackage {
+    /// build a native DnfPackage from a HashMap contains values returned from call to Rpm.list() method
+    /// with the following attrs: `name, arch, evr, repo_id, is_installed, installed_size`
+    /// it is designed to be used with get_packages
     pub fn from(pkg: &HashMap<String, OwnedValue>) -> DnfPackage {
         Self {
             name: from_variant!(pkg, String, "name"),
@@ -68,7 +77,7 @@ impl DnfPackage {
 
 /// Stucture with options for org.rpm.dnf.v0.rpm.Rpm.list(a(sv) options.)
 #[derive(Debug, Type, Deserialize, Serialize)]
-struct ListOptions {
+pub struct ListOptions {
     package_attrs: Vec<String>,
     patterns: Vec<String>,
     scope: String,
@@ -81,12 +90,13 @@ struct ListOptions {
 }
 
 impl ListOptions {
-    fn builder() -> ListOptionsBuilder {
+    /// create a ListOptionBuilder to build the wanted options
+    pub fn builder() -> ListOptionsBuilder {
         ListOptionsBuilder::new()
     }
 
     /// Generate a HashMap with key/value (as variant) pairs to use for Dbus
-    fn to_dbus(&self) -> HashMap<String, Value<'_>> {
+    pub fn to_dbus(&self) -> HashMap<String, Value<'_>> {
         let mut options = HashMap::new();
         // Add a "<fieldname": Value(self.<fieldname>) entry to the map
         insert_field!(options, self.package_attrs);
@@ -102,8 +112,8 @@ impl ListOptions {
     }
 }
 
-// Builder for ListOptionn
-struct ListOptionsBuilder {
+/// Builder for setup ListOptions
+pub struct ListOptionsBuilder {
     package_attrs: Vec<String>,
     patterns: Vec<String>,
     scope: String,
@@ -116,7 +126,8 @@ struct ListOptionsBuilder {
 }
 
 impl ListOptionsBuilder {
-    fn new() -> ListOptionsBuilder {
+    /// make a new ListOptionBuilder object.
+    pub fn new() -> ListOptionsBuilder {
         ListOptionsBuilder {
             package_attrs: Vec::new(),
             patterns: Vec::new(),
@@ -130,26 +141,30 @@ impl ListOptionsBuilder {
         }
     }
 
-    fn attrs(mut self, attrs: &Vec<String>) -> ListOptionsBuilder {
+    /// Add attributes to return from the matched packages.
+    pub fn attrs(mut self, attrs: &Vec<String>) -> ListOptionsBuilder {
         for attr in attrs {
             self.package_attrs.push(attr.to_owned());
         }
         self
     }
 
-    fn patterns(mut self, patterns: &Vec<String>) -> ListOptionsBuilder {
+    /// Add patterns to match
+    pub fn patterns(mut self, patterns: &Vec<String>) -> ListOptionsBuilder {
         for pat in patterns {
             self.patterns.push(pat.to_owned());
         }
         self
     }
 
-    fn scope(mut self, scope: String) -> ListOptionsBuilder {
+    /// Add scope to search in (all, installed, available)
+    pub fn scope(mut self, scope: String) -> ListOptionsBuilder {
         self.scope = scope.to_owned();
         self
     }
 
-    fn build(self) -> ListOptions {
+    /// build the ListOption object from the applied options
+    pub fn build(self) -> ListOptions {
         ListOptions {
             package_attrs: self.package_attrs,
             patterns: self.patterns,
@@ -197,7 +212,7 @@ pub async fn get_packages(
 }
 
 /// Convert the package HashMap's returnend by zbus to DnfPackage objects
-pub fn build_packages(pkgs: &ListResults) -> Vec<DnfPackage> {
+fn build_packages(pkgs: &ListResults) -> Vec<DnfPackage> {
     let mut packages = Vec::new();
     for pkg in &pkgs.items {
         packages.push(DnfPackage::from(pkg));

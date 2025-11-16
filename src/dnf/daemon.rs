@@ -6,20 +6,36 @@ use zbus::{Connection, zvariant::OwnedObjectPath};
 
 use crate::dnf;
 
-/// Structure to store the state of the DBus connection to Dnf5daemon
+/// This does all the work by creating a new session to the dnf5daemon-server.
+/// Store proxies to the Dbus interfaces publised be the dnf5daemon-server.
+/// Automatic close the session, when the instance is dropped.
+/// So no session will be kept running on the dnf5daemon is the user application panics.
 pub struct DnfDaemon {
+    /// proxy for interface org.rpm.dnf.v0.SessionManger
     pub session_manager: dnf::proxy::SessionManagerProxy<'static>,
     pub path: OwnedObjectPath,
+    /// proxy for interface org.rpm.dnf.v0.Base
     pub base: dnf::proxy::BaseProxy<'static>,
+    /// proxy for interface org.rpm.dnf.v0.Rpm
     pub rpm: dnf::proxy::RpmProxy<'static>,
+    /// proxy for interface org.rpm.dnf.v0.Repo
     pub repo: dnf::proxy::RepoProxy<'static>,
+    /// proxy for interface org.rpm.dnf.v0.Group
     pub group: dnf::proxy::GroupProxy<'static>,
+    /// proxy for interface org.rpm.dnf.v0.Offline
     pub offline: dnf::proxy::OfflineProxy<'static>,
+    /// proxy for interface org.rpm.dnf.v0.Advisory
     pub advisory: dnf::proxy::AdvisoryProxy<'static>,
+    /// session connect status
     pub connected: bool,
 }
 
-/// methods to open/close the connection to Dnf5Daemon and setup proxies for the used interfaces
+impl AsRef<DnfDaemon> for DnfDaemon {
+    fn as_ref(&self) -> &DnfDaemon {
+        self
+    }
+}
+/// methods to open/close the connection to dnf5daemon-server and setup proxies for the used interfaces
 impl DnfDaemon {
     pub async fn new() -> Self {
         let connection = Connection::system()
@@ -95,7 +111,7 @@ impl DnfDaemon {
             .build()
             .await
             .expect("Error: cant connect to org.rpm.dnf.v0.Offline");
-        debug!("dnf5daemon session opened : {path}");
+        debug!("DBUS: org.rpm.dnf.v0 session opened : {path}");
         Self {
             session_manager: proxy,
             path: path,
@@ -109,28 +125,31 @@ impl DnfDaemon {
         }
     }
 
+    /// close the session to dnf5daemon-server, it is called automatic when the object is dropped.
     pub async fn close(&mut self) -> Result<bool, &str> {
         if self.connected {
             let obj_path = self.path.as_ref();
             self.session_manager
                 .close_session(&obj_path)
                 .await
-                .expect("Error: cant close dnf5daemon session");
+                .expect("Error: cant close org.rpm.dnf.v0 session");
             self.connected = false;
             return Ok(self.connected.clone());
         } else {
-            warn!("Connection is not open");
-            return Err("Connection is not open");
+            warn!("org.rpm.dnf.v0 session is not open");
+            return Err("org.rpm.dnf.v0 session is not open");
         }
     }
 }
 
 impl Drop for DnfDaemon {
+    /// make sure that any existing session with dnf5daemon-server is closed
     fn drop(&mut self) {
         if self.connected {
+            let path = self.path.to_owned().to_string();
             match futures::executor::block_on(self.close()) {
-                Ok(_) => debug!("Dnfdaemon closed"),
-                Err(e) => warn!("Dnfdaemon close error : {}", e),
+                Ok(_) => debug!("DBUS: org.rpm.dnf.v0 session closed : {}", path),
+                Err(e) => warn!("org.rpm.dnf.v0 session close error : {}", e),
             }
         }
     }
