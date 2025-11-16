@@ -89,6 +89,12 @@ pub struct ListOptions {
     with_binaries: bool,
 }
 
+impl AsRef<ListOptions> for ListOptions {
+    fn as_ref(&self) -> &ListOptions {
+        self
+    }
+}
+
 impl ListOptions {
     /// create a ListOptionBuilder to build the wanted options
     pub fn builder() -> ListOptionsBuilder {
@@ -158,7 +164,7 @@ impl ListOptionsBuilder {
     }
 
     /// Add scope to search in (all, installed, available)
-    pub fn scope(mut self, scope: String) -> ListOptionsBuilder {
+    pub fn scope(mut self, scope: &str) -> ListOptionsBuilder {
         self.scope = scope.to_owned();
         self
     }
@@ -180,9 +186,9 @@ impl ListOptionsBuilder {
 }
 /// Get packages by calling org.rpm.dnf.v0.rpm.Rpm.list()
 pub async fn get_packages(
-    daemon: &DnfDaemon,
-    patterns: &Vec<String>,
-    scope: &String,
+    daemon: impl AsRef<DnfDaemon>,
+    patterns: impl AsRef<Vec<String>>,
+    scope: &str,
 ) -> Vec<DnfPackage> {
     // Setup query options for use with org.rpm.dnf.v0.rpm.Rpm.list()
     // check here for details
@@ -197,13 +203,14 @@ pub async fn get_packages(
     ];
     let options = ListOptions::builder()
         .attrs(&attrs)
-        .patterns(patterns)
-        .scope(scope.to_owned())
+        .patterns(patterns.as_ref())
+        .scope(scope)
         .build();
     debug!("{:?}", options.to_dbus());
 
     // Read packages from Rpm.list() and convert into DnfPackages
     let pkgs = daemon
+        .as_ref()
         .rpm
         .list(options.to_dbus())
         .await

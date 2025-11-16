@@ -10,6 +10,8 @@ use crate::dnf;
 /// Store proxies to the Dbus interfaces publised be the dnf5daemon-server.
 /// Automatic close the session, when the instance is dropped.
 /// So no session will be kept running on the dnf5daemon is the user application panics.
+
+#[derive(Debug)]
 pub struct DnfDaemon {
     /// proxy for interface org.rpm.dnf.v0.SessionManger
     pub session_manager: dnf::proxy::SessionManagerProxy<'static>,
@@ -27,7 +29,7 @@ pub struct DnfDaemon {
     /// proxy for interface org.rpm.dnf.v0.Advisory
     pub advisory: dnf::proxy::AdvisoryProxy<'static>,
     /// session connect status
-    pub connected: bool,
+    connected: bool,
 }
 
 impl AsRef<DnfDaemon> for DnfDaemon {
@@ -139,6 +141,10 @@ impl DnfDaemon {
             warn!("org.rpm.dnf.v0 session is not open");
             return Err("org.rpm.dnf.v0 session is not open");
         }
+    }
+
+    pub fn is_connected(&self) -> bool {
+        self.connected.to_owned()
     }
 }
 
