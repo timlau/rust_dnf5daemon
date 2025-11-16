@@ -1,7 +1,6 @@
 use crate::dnf::daemon::DnfDaemon;
 use crate::dnf::proxy::ListResults;
 
-use log::debug;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use zbus::zvariant::{OwnedValue, Type, Value};
@@ -206,7 +205,7 @@ pub async fn get_packages(
         .patterns(patterns.as_ref())
         .scope(scope)
         .build();
-    debug!("{:?}", options.to_dbus());
+    // debug!("{:?}", options.to_dbus());
 
     // Read packages from Rpm.list() and convert into DnfPackages
     let pkgs = daemon
