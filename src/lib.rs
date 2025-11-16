@@ -15,11 +15,12 @@
 //! - List the local `DnfPackage` instances that represent the result of the request
 //!
 //! ``` rust
+//! use std::error::Error;
 //! use dnf5daemon::package::get_packages;
 //! use dnf5daemon::daemon::DnfDaemon;
 //! use dnf5daemon::package::DnfPackage;
 //!
-//! !#[tokio::main]
+//! #[tokio::main]
 //! async fn main() -> Result<(), Box<dyn Error>> {
 //!     let dnf_daemon = DnfDaemon::new().await;
 //!     let rc = dnf_daemon.base.read_all_repos().await.ok().unwrap();
@@ -28,6 +29,7 @@
 //!     for pkg in packages {
 //!         println!("{:?}", pkg);
 //!     }
+//!     Ok(())
 //! }
 //! ```
 
