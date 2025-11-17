@@ -25,7 +25,9 @@
 //!     let dnf_daemon = DnfDaemon::new().await;
 //!     let rc = dnf_daemon.base.read_all_repos().await.ok().unwrap();
 //!     let pattern: Vec<String> = vec!["dnf5*".to_owned()];
-//!     let packages = &get_packages(&dnf_daemon, &pattern, &"all".to_owned()).await;
+//!     let packages = &get_packages(&dnf_daemon, &pattern, &"all".to_owned())
+//!         .await
+//!         .expect("Error in get_packages");
 //!     for pkg in packages {
 //!         println!("{:?}", pkg);
 //!     }

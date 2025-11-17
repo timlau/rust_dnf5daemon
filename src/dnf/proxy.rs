@@ -9,6 +9,10 @@ pub struct ListResults {
     pub items: Vec<HashMap<String, OwnedValue>>,
 }
 
+// Boilerplate code generated with
+// zbus-xmlgen file instrospection.xml
+// where introspection.xml is the introspection returned from the differnt dnf5 dbus interfaces
+
 #[proxy(
     interface = "org.rpm.dnf.v0.SessionManager",
     default_service = "org.rpm.dnf.v0",
