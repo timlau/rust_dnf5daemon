@@ -12,6 +12,8 @@ pub struct ListResults {
 // Boilerplate code generated with
 // zbus-xmlgen file instrospection.xml
 // where introspection.xml is the introspection returned from the differnt dnf5 dbus interfaces
+// it is a little tricky to generate, because only the SessionManager is available, the rest is only available
+// when open_session has been called.
 
 #[proxy(
     interface = "org.rpm.dnf.v0.SessionManager",
