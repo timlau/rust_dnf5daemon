@@ -12,7 +12,9 @@ async fn daemon_test() {
     assert_eq!(rc, true);
     // Check that we can get a get some packages, using the high-level API
     let pattern: Vec<String> = vec!["dnf5*".to_owned()];
-    let packages = get_packages(&dnf_daemon, pattern, &"all".to_string()).await;
+    let packages = get_packages(&dnf_daemon, pattern, &"all".to_string())
+        .await
+        .expect("Error in get_packages");
     for pkg in &packages {
         println!("{:?}", pkg);
     }

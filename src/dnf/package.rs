@@ -3,19 +3,17 @@ use crate::dnf::proxy::ListResults;
 
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use zbus::zvariant::{OwnedValue, Type, Value};
+use zbus::zvariant::{Error, OwnedValue, Type, Value};
 
 /// Macro to convert a variant store under a given key in a HashMap into a given native type
 macro_rules! from_variant {
     ($pkg: expr,$typ:ty, $field:literal) => {
         match $pkg.get($field) {
-            Some(v) => <$typ>::try_from(v.to_owned()).expect(concat!(
-                "Can't convert ",
-                $field,
-                " to ",
-                stringify!($typ)
-            )),
-            _ => panic!(concat!($field, " was not found in HashMap")),
+            Some(v) => <$typ>::try_from(v.to_owned()),
+            None => Err(Error::Message(format!(
+                "Key {:?} not found in Rpm.list() result.",
+                $field
+            ))),
         }
     };
 }
@@ -62,15 +60,15 @@ impl DnfPackage {
     /// build a native DnfPackage from a HashMap contains values returned from call to Rpm.list() method
     /// with the following attrs: `name, arch, evr, repo_id, is_installed, installed_size`
     /// it is designed to be used with get_packages
-    pub fn from(pkg: &HashMap<String, OwnedValue>) -> DnfPackage {
-        Self {
-            name: from_variant!(pkg, String, "name"),
-            arch: from_variant!(pkg, String, "arch"),
-            evr: from_variant!(pkg, String, "evr"),
-            repo_id: from_variant!(pkg, String, "repo_id"),
-            is_installed: from_variant!(pkg, bool, "is_installed"),
-            size: from_variant!(pkg, u64, "install_size"),
-        }
+    pub fn from(pkg: &HashMap<String, OwnedValue>) -> Result<DnfPackage, Error> {
+        Ok(Self {
+            name: from_variant!(pkg, String, "name")?,
+            arch: from_variant!(pkg, String, "arch")?,
+            evr: from_variant!(pkg, String, "evr")?,
+            repo_id: from_variant!(pkg, String, "repo_id")?,
+            is_installed: from_variant!(pkg, bool, "is_installed")?,
+            size: from_variant!(pkg, u64, "install_size")?,
+        })
     }
 }
 
@@ -188,7 +186,7 @@ pub async fn get_packages(
     daemon: impl AsRef<DnfDaemon>,
     patterns: impl AsRef<Vec<String>>,
     scope: &str,
-) -> Vec<DnfPackage> {
+) -> Result<Vec<DnfPackage>, Error> {
     // Setup query options for use with org.rpm.dnf.v0.rpm.Rpm.list()
     // check here for details
     // https://dnf5.readthedocs.io/en/latest/dnf_daemon/dnf5daemon_dbus_api.8.html#org.rpm.dnf.v0.rpm.Rpm.list
@@ -218,10 +216,10 @@ pub async fn get_packages(
 }
 
 /// Convert the package HashMap's returnend by zbus to DnfPackage objects
-fn build_packages(pkgs: &ListResults) -> Vec<DnfPackage> {
+fn build_packages(pkgs: &ListResults) -> Result<Vec<DnfPackage>, Error> {
     let mut packages = Vec::new();
     for pkg in &pkgs.items {
-        packages.push(DnfPackage::from(pkg));
+        packages.push(DnfPackage::from(pkg)?);
     }
-    packages
+    Ok(packages)
 }
