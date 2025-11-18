@@ -22,6 +22,8 @@ pub struct DnfDaemon {
     pub rpm: dnf::proxy::RpmProxy<'static>,
     /// proxy for interface org.rpm.dnf.v0.Repo
     pub repo: dnf::proxy::RepoProxy<'static>,
+    /// proxy for interface org.rpm.dnf.v0.Goal
+    pub goal: dnf::proxy::GoalProxy<'static>,
     /// proxy for interface org.rpm.dnf.v0.Group
     pub group: dnf::proxy::GroupProxy<'static>,
     /// proxy for interface org.rpm.dnf.v0.Offline
@@ -74,6 +76,15 @@ impl DnfDaemon {
             .build()
             .await?;
 
+        // proxy for interface org.rpm.dnf.v0.Goal
+        let goal = dnf::proxy::GoalProxy::builder(&connection)
+            .path(path.clone())
+            .unwrap()
+            .destination("org.rpm.dnf.v0")
+            .unwrap()
+            .build()
+            .await?;
+
         // proxy for interface org.rpm.dnf.v0.Group
         let group = dnf::proxy::GroupProxy::builder(&connection)
             .path(path.clone())
@@ -107,6 +118,7 @@ impl DnfDaemon {
             base: base,
             rpm: rpm,
             repo: repo,
+            goal: goal,
             group: group,
             offline: offline,
             advisory: advisory,
