@@ -39,20 +39,13 @@ impl AsRef<DnfDaemon> for DnfDaemon {
 }
 /// methods to open/close the connection to dnf5daemon-server and setup proxies for the used interfaces
 impl DnfDaemon {
-    pub async fn new() -> Self {
-        let connection = Connection::system()
-            .await
-            .expect("Error: can't connect to system bus");
+    pub async fn new() -> Result<DnfDaemon, zbus::Error> {
+        let connection = Connection::system().await?;
 
         // proxy for interface org.rpm.dnf.v0.SessionManger
-        let proxy = dnf::proxy::SessionManagerProxy::new(&connection)
-            .await
-            .expect("Error: can make dbus connection");
+        let proxy = dnf::proxy::SessionManagerProxy::new(&connection).await?;
 
-        let path = proxy
-            .open_session(HashMap::new())
-            .await
-            .expect("Error: cant open dnf5daemon session");
+        let path = proxy.open_session(HashMap::new()).await?;
 
         // proxy for interface org.rpm.dnf.v0.Base
         let base = dnf::proxy::BaseProxy::builder(&connection)
@@ -61,8 +54,7 @@ impl DnfDaemon {
             .destination("org.rpm.dnf.v0")
             .unwrap()
             .build()
-            .await
-            .expect("Error: cant connect to org.rpm.dnf.v0.Base");
+            .await?;
 
         // proxy for interface org.rpm.dnf.v0.Rpm
         let rpm = dnf::proxy::RpmProxy::builder(&connection)
@@ -71,8 +63,7 @@ impl DnfDaemon {
             .destination("org.rpm.dnf.v0")
             .unwrap()
             .build()
-            .await
-            .expect("Error: cant connect to org.rpm.dnf.v0.Rpm");
+            .await?;
 
         // proxy for interface org.rpm.dnf.v0.Repo
         let repo = dnf::proxy::RepoProxy::builder(&connection)
@@ -81,8 +72,7 @@ impl DnfDaemon {
             .destination("org.rpm.dnf.v0")
             .unwrap()
             .build()
-            .await
-            .expect("Error: cant connect to org.rpm.dnf.v0.Repo");
+            .await?;
 
         // proxy for interface org.rpm.dnf.v0.Group
         let group = dnf::proxy::GroupProxy::builder(&connection)
@@ -91,8 +81,7 @@ impl DnfDaemon {
             .destination("org.rpm.dnf.v0")
             .unwrap()
             .build()
-            .await
-            .expect("Error: cant connect to org.rpm.dnf.v0.Group");
+            .await?;
 
         // proxy for interface org.rpm.dnf.v0.Advisory
         let advisory = dnf::proxy::AdvisoryProxy::builder(&connection)
@@ -101,8 +90,7 @@ impl DnfDaemon {
             .destination("org.rpm.dnf.v0")
             .unwrap()
             .build()
-            .await
-            .expect("Error: cant connect to org.rpm.dnf.v0.Advisory");
+            .await?;
 
         // proxy for interface org.rpm.dnf.v0.Offline
         let offline = dnf::proxy::OfflineProxy::builder(&connection)
@@ -111,10 +99,9 @@ impl DnfDaemon {
             .destination("org.rpm.dnf.v0")
             .unwrap()
             .build()
-            .await
-            .expect("Error: cant connect to org.rpm.dnf.v0.Offline");
+            .await?;
         debug!("DBUS: org.rpm.dnf.v0 session opened : {path}");
-        Self {
+        Ok(Self {
             session_manager: proxy,
             path: path,
             base: base,
@@ -124,7 +111,7 @@ impl DnfDaemon {
             offline: offline,
             advisory: advisory,
             connected: true,
-        }
+        })
     }
 
     /// close the session to dnf5daemon-server, it is called automatic when the object is dropped.
