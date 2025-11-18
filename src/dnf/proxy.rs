@@ -165,7 +165,7 @@ pub trait Rpm {
     #[zbus(name = "distro_sync")]
     fn distro_sync(
         &self,
-        pkg_specs: &[&str],
+        pkg_specs: &Vec<String>,
         options: std::collections::HashMap<&str, &zbus::zvariant::Value<'_>>,
     ) -> zbus::Result<()>;
 
@@ -173,7 +173,7 @@ pub trait Rpm {
     #[zbus(name = "downgrade")]
     fn downgrade(
         &self,
-        pkg_specs: &[&str],
+        pkg_specs: &Vec<String>,
         options: std::collections::HashMap<&str, &zbus::zvariant::Value<'_>>,
     ) -> zbus::Result<()>;
 
@@ -181,7 +181,7 @@ pub trait Rpm {
     #[zbus(name = "install")]
     fn install(
         &self,
-        pkg_specs: &[&str],
+        pkg_specs: &Vec<String>,
         options: std::collections::HashMap<&str, &zbus::zvariant::Value<'_>>,
     ) -> zbus::Result<()>;
 
@@ -201,7 +201,7 @@ pub trait Rpm {
     #[zbus(name = "reinstall")]
     fn reinstall(
         &self,
-        pkg_specs: &[&str],
+        pkg_specs: &Vec<String>,
         options: std::collections::HashMap<&str, &zbus::zvariant::Value<'_>>,
     ) -> zbus::Result<()>;
 
@@ -209,7 +209,7 @@ pub trait Rpm {
     #[zbus(name = "remove")]
     fn remove(
         &self,
-        pkg_specs: &[&str],
+        pkg_specs: &Vec<String>,
         options: std::collections::HashMap<&str, &zbus::zvariant::Value<'_>>,
     ) -> zbus::Result<()>;
 
@@ -224,7 +224,7 @@ pub trait Rpm {
     #[zbus(name = "upgrade")]
     fn upgrade(
         &self,
-        pkg_specs: &[&str],
+        pkg_specs: &Vec<String>,
         options: std::collections::HashMap<&str, &zbus::zvariant::Value<'_>>,
     ) -> zbus::Result<()>;
 
