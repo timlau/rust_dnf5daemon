@@ -1,5 +1,5 @@
-use dnf5daemon::dnf::daemon::DnfDaemon;
-use dnf5daemon::dnf::package::get_packages;
+use dnf5daemon::DnfDaemon;
+use dnf5daemon::package::get_packages;
 
 #[tokio::test]
 async fn daemon_test() {

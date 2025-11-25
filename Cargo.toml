@@ -7,6 +7,7 @@ edition = "2024"
 name = "integration_test"
 
 [dependencies]
+derive_more = { version = "2.0.1", features = ["from"] }
 env_logger = "0.11.8"
 futures = "0.3.31"
 futures-util = "0.3.31"

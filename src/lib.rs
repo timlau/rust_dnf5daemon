@@ -17,7 +17,7 @@
 //! ``` rust
 //! use std::error::Error;
 //! use dnf5daemon::package::get_packages;
-//! use dnf5daemon::daemon::DnfDaemon;
+//! use dnf5daemon::DnfDaemon;
 //! use dnf5daemon::package::DnfPackage;
 //!
 //! #[tokio::main]
@@ -40,8 +40,10 @@
 
 /// the root module of the library
 pub mod dnf;
+pub mod errors;
 
 // re-exports
-pub use crate::dnf::daemon;
+pub use crate::dnf::daemon::DnfDaemon;
 pub use crate::dnf::package;
 pub use crate::dnf::proxy;
+pub use crate::errors::{Error, Result};

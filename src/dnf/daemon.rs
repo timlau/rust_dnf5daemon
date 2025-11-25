@@ -5,6 +5,7 @@ use std::collections::HashMap;
 use zbus::{Connection, zvariant::OwnedObjectPath};
 
 use crate::dnf;
+use crate::{Error, Result};
 
 /// This does all the work by creating a new session to the dnf5daemon-server.
 /// Store proxies to the Dbus interfaces publised be the dnf5daemon-server.
@@ -41,7 +42,7 @@ impl AsRef<DnfDaemon> for DnfDaemon {
 }
 /// methods to open/close the connection to dnf5daemon-server and setup proxies for the used interfaces
 impl DnfDaemon {
-    pub async fn new() -> Result<DnfDaemon, zbus::Error> {
+    pub async fn new() -> Result<DnfDaemon> {
         let connection = Connection::system().await?;
 
         // proxy for interface org.rpm.dnf.v0.SessionManger
@@ -127,18 +128,17 @@ impl DnfDaemon {
     }
 
     /// close the session to dnf5daemon-server, it is called automatic when the object is dropped.
-    pub async fn close(&mut self) -> Result<bool, &str> {
+    pub async fn close(&mut self) -> Result<bool> {
         if self.connected {
             let obj_path = self.path.as_ref();
-            self.session_manager
-                .close_session(&obj_path)
-                .await
-                .expect("Error: cant close org.rpm.dnf.v0 session");
+            self.session_manager.close_session(&obj_path).await?;
             self.connected = false;
             return Ok(self.connected.clone());
         } else {
             warn!("org.rpm.dnf.v0 session is not open");
-            return Err("org.rpm.dnf.v0 session is not open");
+            return Err(Error::DnfDaemon(
+                "org.rpm.dnf.v0 session is not open".into(),
+            ));
         }
     }
 
