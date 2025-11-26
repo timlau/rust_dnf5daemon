@@ -14,6 +14,13 @@ I have created a simple demo application located here:
 https://github.com/timlau/minidnf
 
 
+## Examples
+
+### Simple example to the high-level get_packages API to list packages matching a given pattern.
+```rust
+cargo run --example e01_list
+```
+
 ## Links
 
 - [Dnf5 dbus API](https://dnf5.readthedocs.io/en/latest/dnf_daemon/dnf5daemon_dbus_api.8.html)
