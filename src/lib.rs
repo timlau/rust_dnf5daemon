@@ -39,11 +39,10 @@
 //! ```
 
 /// the root module of the library
-pub mod dnf;
-pub mod errors;
+mod dnf;
+mod errors;
 
 // re-exports
 pub use crate::dnf::daemon::DnfDaemon;
 pub use crate::dnf::package;
-pub use crate::dnf::proxy;
 pub use crate::errors::{Error, Result};

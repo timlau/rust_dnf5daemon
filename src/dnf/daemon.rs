@@ -15,8 +15,8 @@ use crate::{Error, Result};
 #[derive(Debug)]
 pub struct DnfDaemon {
     /// proxy for interface org.rpm.dnf.v0.SessionManger
-    pub session_manager: dnf::proxy::SessionManagerProxy<'static>,
-    pub path: OwnedObjectPath,
+    session_manager: dnf::proxy::SessionManagerProxy<'static>,
+    path: OwnedObjectPath,
     /// proxy for interface org.rpm.dnf.v0.Base
     pub base: dnf::proxy::BaseProxy<'static>,
     /// proxy for interface org.rpm.dnf.v0.Rpm

@@ -17,5 +17,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
     } else {
         println!("Could not connect to dnf5daemon-server");
     };
+
     Ok(())
 }

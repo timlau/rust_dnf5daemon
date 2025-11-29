@@ -6,4 +6,4 @@ pub mod daemon;
 pub mod package;
 
 /// This module contains Traits for the DBus interfaces that maps the Dbus API of dnf5daemon-server.
-pub mod proxy;
+pub(crate) mod proxy;
