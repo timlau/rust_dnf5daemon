@@ -42,7 +42,7 @@ impl AsRef<DnfDaemon> for DnfDaemon {
 }
 /// methods to open/close the connection to dnf5daemon-server and setup proxies for the used interfaces
 impl DnfDaemon {
-    pub async fn new() -> Result<DnfDaemon> {
+    pub async fn default() -> Result<DnfDaemon> {
         let connection = Connection::system().await?;
 
         // proxy for interface org.rpm.dnf.v0.SessionManger

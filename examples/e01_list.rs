@@ -4,7 +4,7 @@ use std::error::Error;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
-    if let Ok(dnf_daemon) = DnfDaemon::new().await {
+    if let Ok(dnf_daemon) = DnfDaemon::default().await {
         let rc = dnf_daemon.base.read_all_repos().await.ok().unwrap();
         println!("Read all repos returned: {:?}", rc);
         let pattern: Vec<String> = vec!["dnf5*".to_owned()];

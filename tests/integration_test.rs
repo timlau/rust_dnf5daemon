@@ -5,7 +5,7 @@ use dnf5daemon::package::get_packages;
 async fn daemon_test() {
     env_logger::init();
     // Check that new session can be opened.
-    if let Ok(mut dnf_daemon) = DnfDaemon::new().await {
+    if let Ok(mut dnf_daemon) = DnfDaemon::default().await {
         assert_eq!(dnf_daemon.is_connected(), true);
         // Check that we can call a method on one of the interfaces
         let rc = dnf_daemon.base.read_all_repos().await.ok().unwrap();
