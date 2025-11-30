@@ -1,0 +1,156 @@
+#[allow(unused)]
+#[allow(dead_code)]
+use crate::DnfDaemon;
+use crate::{Error, Result};
+use std::collections::HashMap;
+use zbus::zvariant::OwnedValue;
+
+// region:    --- TransactionMember
+#[derive(Debug)]
+pub struct TransactionMember {
+    pub action: String,
+    pub reason: String,
+    pub nevra: String,
+    pub sub_action: Option<String>,
+}
+
+impl TransactionMember {
+    pub fn from(action: String, reason: String, tx_pkg: HashMap<String, OwnedValue>) -> Self {
+        let sub_reason = String::try_from(tx_pkg.get("reason").unwrap().to_owned()).unwrap();
+        let full_nevra = String::try_from(tx_pkg.get("full_nevra").unwrap().to_owned()).unwrap();
+        let sub_action = if sub_reason == "None" || sub_reason == *reason {
+            None
+        } else {
+            Some(sub_reason)
+        };
+        Self {
+            action: action,
+            reason: reason,
+            nevra: full_nevra,
+            sub_action: sub_action,
+        }
+    }
+}
+
+// endregion: --- TransactionMember
+
+// region:    --- TransactionResult
+#[derive(Debug)]
+pub struct TransactionResult {
+    pub tx_members: Vec<TransactionMember>,
+    pub result_code: u32,
+}
+
+impl TransactionResult {
+    pub fn from(
+        txmbrs: Vec<(
+            String,
+            String,
+            String,
+            HashMap<String, OwnedValue>,
+            HashMap<String, OwnedValue>,
+        )>,
+        result_code: u32,
+    ) -> Option<Self> {
+        let mut members: Vec<TransactionMember> = Vec::new();
+        for (_, action, reason, _, tx_pkg) in txmbrs {
+            let tx_mbr =
+                TransactionMember::from(action.to_string(), reason.to_string(), tx_pkg.to_owned());
+            members.push(tx_mbr);
+        }
+        Some(Self {
+            tx_members: members,
+            result_code: result_code,
+        })
+    }
+
+    pub fn is_successful(&self) -> bool {
+        self.result_code == 0
+    }
+
+    pub fn show(&self) {
+        for mbr in &self.tx_members {
+            println!("->> {mbr:?}");
+        }
+    }
+}
+// endregion: --- TransactionResult
+
+// region:    --- Transaction
+pub struct Transaction<'a> {
+    dnf_daemon: &'a DnfDaemon,
+    transaction_result: Option<TransactionResult>,
+}
+
+impl<'a> Transaction<'a> {
+    pub fn new(dnf_daemon: &'a DnfDaemon) -> Self {
+        Self {
+            dnf_daemon,
+            transaction_result: None,
+        }
+    }
+
+    pub async fn install(&self, pkgs: &Vec<String>) -> Result<()> {
+        let options: std::collections::HashMap<&str, &zbus::zvariant::Value<'_>> = HashMap::new();
+        self.dnf_daemon
+            .rpm
+            .install(pkgs, options.clone())
+            .await
+            .ok();
+        Ok(())
+    }
+
+    pub async fn remove(&self, pkgs: &Vec<String>) -> Result<()> {
+        let options: std::collections::HashMap<&str, &zbus::zvariant::Value<'_>> = HashMap::new();
+        self.dnf_daemon.rpm.remove(pkgs, options.clone()).await.ok();
+        Ok(())
+    }
+
+    pub async fn resolve(&mut self) -> Result<()> {
+        let options: std::collections::HashMap<&str, &zbus::zvariant::Value<'_>> = HashMap::new();
+
+        if let Ok(rc) = self.dnf_daemon.goal.resolve(options.clone()).await {
+            self.transaction_result = TransactionResult::from(rc.0, rc.1);
+            if let Some(result) = &self.transaction_result {
+                if !result.is_successful() {
+                    let msgs = self.dnf_daemon.goal.get_transaction_problems_string().await;
+                    match msgs {
+                        Ok(err_msgs) => {
+                            return Err(Error::TransactionNotResolved(err_msgs.join("\n")));
+                        }
+                        Err(_) => {
+                            return Err(Error::TransactionNotResolved(
+                                "Unknown error during transaction resolution".to_string(),
+                            ));
+                        }
+                    }
+                }
+            }
+        };
+        Ok(())
+    }
+
+    pub async fn execute(&mut self) -> Result<()> {
+        let options: std::collections::HashMap<&str, &zbus::zvariant::Value<'_>> = HashMap::new();
+        if let Some(result) = &self.transaction_result {
+            if result.is_successful() {
+                // everything is Ok, do transaction
+                let _rc = self
+                    .dnf_daemon
+                    .goal
+                    .do_transaction(options.clone())
+                    .await
+                    .ok();
+            }
+        }
+        Ok(())
+    }
+
+    pub fn show(&self) {
+        if let Some(result) = &self.transaction_result {
+            result.show();
+        }
+    }
+}
+
+// endregion: --- Transaction

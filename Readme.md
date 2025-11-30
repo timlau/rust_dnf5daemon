@@ -1,6 +1,6 @@
-# Rust crate to demo use of dnf5 dbus API-
+# Rust libraty to use the dnf5 dbus API-
 
-The code and is under heavy development and no way complete
+The code and is under heavy development and no way complete or API is **NOT** stable.
 But can be used for inspiration on how to use the dnf5 dbus API
 
 (C) 2025 Tim Lauridsen
@@ -16,9 +16,19 @@ https://github.com/timlau/minidnf
 
 ## Examples
 
-### Simple example to the high-level get_packages API to list packages matching a given pattern.
+### Example to the high-level get_packages API to list packages matching a given pattern.
 ```rust
-cargo run --example e01_list
+cargo run --example list
+```
+
+### Example to use the transaction API to install the 0xFFFF package
+```rust
+cargo run --example install
+```
+
+### Example to use the transaction API to remove the 0xFFFF package
+```rust
+cargo run --example remove
 ```
 
 ## Links

@@ -45,4 +45,5 @@ mod errors;
 // re-exports
 pub use crate::dnf::daemon::DnfDaemon;
 pub use crate::dnf::package;
+pub use crate::dnf::transaction;
 pub use crate::errors::{Error, Result};
