@@ -6,6 +6,7 @@ use std::collections::HashMap;
 use zbus::zvariant::OwnedValue;
 
 // region:    --- TransactionMember
+/// struct representing a member of a transaction
 #[derive(Debug)]
 pub struct TransactionMember {
     pub action: String,
@@ -15,6 +16,7 @@ pub struct TransactionMember {
 }
 
 impl TransactionMember {
+    ///New TransactionMember from action, reason and tx_pkg hashmap return my Goal.resolve method
     pub fn from(action: String, reason: String, tx_pkg: HashMap<String, OwnedValue>) -> Self {
         let sub_reason = String::try_from(tx_pkg.get("reason").unwrap().to_owned()).unwrap();
         let full_nevra = String::try_from(tx_pkg.get("full_nevra").unwrap().to_owned()).unwrap();
@@ -35,6 +37,7 @@ impl TransactionMember {
 // endregion: --- TransactionMember
 
 // region:    --- TransactionResult
+/// struct representing the result of a transaction
 #[derive(Debug)]
 pub struct TransactionResult {
     pub tx_members: Vec<TransactionMember>,
@@ -77,19 +80,21 @@ impl TransactionResult {
 // endregion: --- TransactionResult
 
 // region:    --- Transaction
+/// struct representing a DNF transaction
 pub struct Transaction<'a> {
     dnf_daemon: &'a DnfDaemon,
     transaction_result: Option<TransactionResult>,
 }
 
 impl<'a> Transaction<'a> {
+    /// Create a new Transaction instance
     pub fn new(dnf_daemon: &'a DnfDaemon) -> Self {
         Self {
             dnf_daemon,
             transaction_result: None,
         }
     }
-
+    /// Install packages in the transaction
     pub async fn install(&self, pkgs: &Vec<String>) -> Result<()> {
         let options: std::collections::HashMap<&str, &zbus::zvariant::Value<'_>> = HashMap::new();
         self.dnf_daemon
@@ -100,12 +105,14 @@ impl<'a> Transaction<'a> {
         Ok(())
     }
 
+    /// Remove packages in the transaction
     pub async fn remove(&self, pkgs: &Vec<String>) -> Result<()> {
         let options: std::collections::HashMap<&str, &zbus::zvariant::Value<'_>> = HashMap::new();
         self.dnf_daemon.rpm.remove(pkgs, options.clone()).await.ok();
         Ok(())
     }
 
+    /// Resolve the transaction
     pub async fn resolve(&mut self) -> Result<()> {
         let options: std::collections::HashMap<&str, &zbus::zvariant::Value<'_>> = HashMap::new();
 
@@ -129,7 +136,7 @@ impl<'a> Transaction<'a> {
         };
         Ok(())
     }
-
+    /// Execute the transaction
     pub async fn execute(&mut self) -> Result<()> {
         let options: std::collections::HashMap<&str, &zbus::zvariant::Value<'_>> = HashMap::new();
         if let Some(result) = &self.transaction_result {
@@ -146,6 +153,7 @@ impl<'a> Transaction<'a> {
         Ok(())
     }
 
+    /// Show the transaction result
     pub fn show(&self) {
         if let Some(result) = &self.transaction_result {
             result.show();

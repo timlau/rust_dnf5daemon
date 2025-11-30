@@ -8,5 +8,5 @@ pub mod package;
 /// This module contains Traits for the DBus interfaces that maps the Dbus API of dnf5daemon-server.
 pub(crate) mod proxy;
 
-/// This module contains sruct for handling DNF Transactions via the Dbus API.
+/// This module contains sruct and methods for handling a DNF transactions via the Dbus API.
 pub mod transaction;
