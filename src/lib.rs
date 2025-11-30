@@ -5,6 +5,7 @@
 //! - Setup proxies to the different interfaces published by the dnf5daemon-server.
 //! - Automatic closing of the session when object is `DnfDaemon` instance is droppd
 //! - there is also a get-package method to use the `org.rpm.dnf.V0.rpm.list` method to get packages matching given options.
+//! - There is also a `Transaction` struct to handle transactions via the dnf5daemon Dbus API.
 //!
 //! ## Example
 //! A simple example, that
