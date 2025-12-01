@@ -75,18 +75,17 @@ pub struct TransactionResult {
     pub tx_members: Vec<TransactionMember>,
     pub result_code: u32,
 }
+// -- Transaction Result element type
+type TransactionResultElement = (
+    String,
+    String,
+    String,
+    HashMap<String, OwnedValue>,
+    HashMap<String, OwnedValue>,
+);
 
 impl TransactionResult {
-    pub fn from(
-        txmbrs: Vec<(
-            String,
-            String,
-            String,
-            HashMap<String, OwnedValue>,
-            HashMap<String, OwnedValue>,
-        )>,
-        result_code: u32,
-    ) -> Option<Self> {
+    pub fn from(txmbrs: Vec<(TransactionResultElement)>, result_code: u32) -> Option<Self> {
         let mut members: Vec<TransactionMember> = Vec::new();
         for (_, action, reason, _, tx_pkg) in txmbrs {
             let tx_mbr =
@@ -151,19 +150,20 @@ impl<'a> Transaction<'a> {
         if let Ok(rc) = self.dnf_daemon.goal.resolve(options.clone()).await {
             self.transaction_result = TransactionResult::from(rc.0, rc.1);
             if let Some(result) = &self.transaction_result
-                && !result.is_successful() {
-                    let msgs = self.dnf_daemon.goal.get_transaction_problems_string().await;
-                    match msgs {
-                        Ok(err_msgs) => {
-                            return Err(Error::TransactionNotResolved(err_msgs.join("\n")));
-                        }
-                        Err(_) => {
-                            return Err(Error::TransactionNotResolved(
-                                "Unknown error during transaction resolution".to_string(),
-                            ));
-                        }
+                && !result.is_successful()
+            {
+                let msgs = self.dnf_daemon.goal.get_transaction_problems_string().await;
+                match msgs {
+                    Ok(err_msgs) => {
+                        return Err(Error::TransactionNotResolved(err_msgs.join("\n")));
+                    }
+                    Err(_) => {
+                        return Err(Error::TransactionNotResolved(
+                            "Unknown error during transaction resolution".to_string(),
+                        ));
                     }
                 }
+            }
         };
         Ok(())
     }
@@ -171,15 +171,16 @@ impl<'a> Transaction<'a> {
     pub async fn execute(&mut self) -> Result<()> {
         let options: std::collections::HashMap<&str, &zbus::zvariant::Value<'_>> = HashMap::new();
         if let Some(result) = &self.transaction_result
-            && result.is_successful() {
-                // everything is Ok, do transaction
-                let _rc = self
-                    .dnf_daemon
-                    .goal
-                    .do_transaction(options.clone())
-                    .await
-                    .ok();
-            }
+            && result.is_successful()
+        {
+            // everything is Ok, do transaction
+            let _rc = self
+                .dnf_daemon
+                .goal
+                .do_transaction(options.clone())
+                .await
+                .ok();
+        }
         Ok(())
     }
 
