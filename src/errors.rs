@@ -1,5 +1,4 @@
 use derive_more::From;
-use zbus;
 
 #[derive(Debug, From)]
 pub enum Error {

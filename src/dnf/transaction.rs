@@ -59,9 +59,9 @@ impl TransactionMember {
         };
         Self {
             action: action.try_into().unwrap(),
-            reason: reason,
+            reason,
             nevra: full_nevra,
-            sub_action: sub_action,
+            sub_action,
         }
     }
 }
@@ -95,7 +95,7 @@ impl TransactionResult {
         }
         Some(Self {
             tx_members: members,
-            result_code: result_code,
+            result_code,
         })
     }
 
@@ -150,8 +150,8 @@ impl<'a> Transaction<'a> {
 
         if let Ok(rc) = self.dnf_daemon.goal.resolve(options.clone()).await {
             self.transaction_result = TransactionResult::from(rc.0, rc.1);
-            if let Some(result) = &self.transaction_result {
-                if !result.is_successful() {
+            if let Some(result) = &self.transaction_result
+                && !result.is_successful() {
                     let msgs = self.dnf_daemon.goal.get_transaction_problems_string().await;
                     match msgs {
                         Ok(err_msgs) => {
@@ -164,15 +164,14 @@ impl<'a> Transaction<'a> {
                         }
                     }
                 }
-            }
         };
         Ok(())
     }
     /// Execute the transaction
     pub async fn execute(&mut self) -> Result<()> {
         let options: std::collections::HashMap<&str, &zbus::zvariant::Value<'_>> = HashMap::new();
-        if let Some(result) = &self.transaction_result {
-            if result.is_successful() {
+        if let Some(result) = &self.transaction_result
+            && result.is_successful() {
                 // everything is Ok, do transaction
                 let _rc = self
                     .dnf_daemon
@@ -181,7 +180,6 @@ impl<'a> Transaction<'a> {
                     .await
                     .ok();
             }
-        }
         Ok(())
     }
 

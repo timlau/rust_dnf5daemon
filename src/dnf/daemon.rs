@@ -115,14 +115,14 @@ impl DnfDaemon {
         debug!("DBUS: org.rpm.dnf.v0 session opened : {path}");
         Ok(Self {
             session_manager: proxy,
-            path: path,
-            base: base,
-            rpm: rpm,
-            repo: repo,
-            goal: goal,
-            group: group,
-            offline: offline,
-            advisory: advisory,
+            path,
+            base,
+            rpm,
+            repo,
+            goal,
+            group,
+            offline,
+            advisory,
             connected: true,
         })
     }
@@ -133,12 +133,12 @@ impl DnfDaemon {
             let obj_path = self.path.as_ref();
             self.session_manager.close_session(&obj_path).await?;
             self.connected = false;
-            return Ok(self.connected.clone());
+            Ok(self.connected)
         } else {
             warn!("org.rpm.dnf.v0 session is not open");
-            return Err(Error::DnfDaemon(
+            Err(Error::DnfDaemon(
                 "org.rpm.dnf.v0 session is not open".into(),
-            ));
+            ))
         }
     }
 

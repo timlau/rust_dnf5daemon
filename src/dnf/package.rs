@@ -128,6 +128,12 @@ pub struct ListOptionsBuilder {
     with_binaries: bool,
 }
 
+impl Default for ListOptionsBuilder {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ListOptionsBuilder {
     /// make a new ListOptionBuilder object.
     pub fn new() -> ListOptionsBuilder {
