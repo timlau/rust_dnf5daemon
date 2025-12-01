@@ -5,6 +5,7 @@ use zbus;
 #[display("{self:?}")]
 pub enum Error {
     TransactionNotResolved(String),
+    InvalidTransactionAction(String),
     #[from]
     DBus(zbus::Error),
     DnfDaemon(String),

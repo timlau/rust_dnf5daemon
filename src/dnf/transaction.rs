@@ -5,11 +5,65 @@ use crate::{Error, Result};
 use std::collections::HashMap;
 use zbus::zvariant::OwnedValue;
 
+// region:    --- Enums
+
+// from dnf5 source code: include/libdnf5/transaction/transaction_item_action.hpp
+// enum class TransactionItemAction : int {
+//     INSTALL = 1,
+//     UPGRADE = 2,
+//     DOWNGRADE = 3,
+//     REINSTALL = 4,
+//     REMOVE = 5,
+//     REPLACED = 6,       // a package that is being replaced by another package (this one is leaving the system)
+//     REASON_CHANGE = 7,  // a package is being kept on the system but its reason is changing
+//     ENABLE = 8,         // module enable
+//     DISABLE = 9,        // module disable
+//     RESET = 10,         // module reset
+//     SWITCH = 11         // module switch
+// };
+
+#[derive(Debug)]
+pub enum TransactionAction {
+    Install,
+    Upgrade,
+    Downgrade,
+    Reinstall,
+    Remove,
+    Replaced,
+    ReasonChange,
+    Enable,
+    Disable,
+    Reset,
+    Switch,
+}
+
+impl TryFrom<String> for TransactionAction {
+    type Error = crate::Error;
+    fn try_from(action: String) -> Result<Self> {
+        match action.to_uppercase().as_str() {
+            "INSTALL" => Ok(TransactionAction::Install),
+            "UPGRADE" => Ok(TransactionAction::Upgrade),
+            "DOWNGRADE" => Ok(TransactionAction::Downgrade),
+            "REINSTALL" => Ok(TransactionAction::Reinstall),
+            "REMOVE" => Ok(TransactionAction::Remove),
+            "REPLACED" => Ok(TransactionAction::Replaced),
+            "REASON_CHANGE" => Ok(TransactionAction::ReasonChange),
+            "ENABLE" => Ok(TransactionAction::Enable),
+            "DISABLE" => Ok(TransactionAction::Disable),
+            "RESET" => Ok(TransactionAction::Reset),
+            "SWITCH" => Ok(TransactionAction::Switch),
+            _ => Err(Error::InvalidTransactionAction(action)),
+        }
+    }
+}
+
+// endregion: --- Enums
+
 // region:    --- TransactionMember
 /// struct representing a member of a transaction
 #[derive(Debug)]
 pub struct TransactionMember {
-    pub action: String,
+    pub action: TransactionAction,
     pub reason: String,
     pub nevra: String,
     pub sub_action: Option<String>,
@@ -26,7 +80,7 @@ impl TransactionMember {
             Some(sub_reason)
         };
         Self {
-            action: action,
+            action: action.try_into().unwrap(),
             reason: reason,
             nevra: full_nevra,
             sub_action: sub_action,
