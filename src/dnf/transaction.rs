@@ -7,20 +7,10 @@ use zbus::zvariant::OwnedValue;
 
 // region:    --- Enums
 
-// from dnf5 source code: include/libdnf5/transaction/transaction_item_action.hpp
-// enum class TransactionItemAction : int {
-//     INSTALL = 1,
-//     UPGRADE = 2,
-//     DOWNGRADE = 3,
-//     REINSTALL = 4,
-//     REMOVE = 5,
-//     REPLACED = 6,       // a package that is being replaced by another package (this one is leaving the system)
-//     REASON_CHANGE = 7,  // a package is being kept on the system but its reason is changing
-//     ENABLE = 8,         // module enable
-//     DISABLE = 9,        // module disable
-//     RESET = 10,         // module reset
-//     SWITCH = 11         // module switch
-// };
+// from dnf5 source code:
+// https://github.com/rpm-software-management/dnf5/blob/3739c4a34db6e7abcd8b4faf0db7d5307f37d340/dnf5daemon-server/transaction.cpp#L30
+// https://github.com/rpm-software-management/dnf5/blob/3739c4a34db6e7abcd8b4faf0db7d5307f37d340/dnf5daemon-server/transaction.hpp#L30
+// Only a subset of RpmTransactionItemActions is used in dnfdaemon-server.
 
 #[derive(Debug)]
 pub enum TransactionAction {
@@ -29,12 +19,6 @@ pub enum TransactionAction {
     Downgrade,
     Reinstall,
     Remove,
-    Replaced,
-    ReasonChange,
-    Enable,
-    Disable,
-    Reset,
-    Switch,
 }
 
 impl TryFrom<String> for TransactionAction {
@@ -46,12 +30,6 @@ impl TryFrom<String> for TransactionAction {
             "DOWNGRADE" => Ok(TransactionAction::Downgrade),
             "REINSTALL" => Ok(TransactionAction::Reinstall),
             "REMOVE" => Ok(TransactionAction::Remove),
-            "REPLACED" => Ok(TransactionAction::Replaced),
-            "REASON_CHANGE" => Ok(TransactionAction::ReasonChange),
-            "ENABLE" => Ok(TransactionAction::Enable),
-            "DISABLE" => Ok(TransactionAction::Disable),
-            "RESET" => Ok(TransactionAction::Reset),
-            "SWITCH" => Ok(TransactionAction::Switch),
             _ => Err(Error::InvalidTransactionAction(action)),
         }
     }
