@@ -19,18 +19,18 @@ pub enum TransactionAction {
     Downgrade,
     Reinstall,
     Remove,
+    Unknown,
 }
 
-impl TryFrom<String> for TransactionAction {
-    type Error = crate::Error;
-    fn try_from(action: String) -> Result<Self> {
+impl From<String> for TransactionAction {
+    fn from(action: String) -> Self {
         match action.to_uppercase().as_str() {
-            "INSTALL" => Ok(TransactionAction::Install),
-            "UPGRADE" => Ok(TransactionAction::Upgrade),
-            "DOWNGRADE" => Ok(TransactionAction::Downgrade),
-            "REINSTALL" => Ok(TransactionAction::Reinstall),
-            "REMOVE" => Ok(TransactionAction::Remove),
-            _ => Err(Error::InvalidTransactionAction(action)),
+            "INSTALL" => TransactionAction::Install,
+            "UPGRADE" => TransactionAction::Upgrade,
+            "DOWNGRADE" => TransactionAction::Downgrade,
+            "REINSTALL" => TransactionAction::Reinstall,
+            "REMOVE" => TransactionAction::Remove,
+            _ => TransactionAction::Unknown,
         }
     }
 }
@@ -58,7 +58,7 @@ impl TransactionMember {
             Some(sub_reason)
         };
         Self {
-            action: action.try_into().unwrap(),
+            action: action.into(),
             reason,
             nevra: full_nevra,
             sub_action,
