@@ -3,15 +3,30 @@
 use crate::DnfDaemon;
 use crate::{Error, Result};
 use std::collections::HashMap;
-use zbus::zvariant::OwnedValue;
+use zbus::zvariant::{OwnedValue, Value};
+
+// region:    --- Types
+
+// -- Custom type for Options Hashmap used in various method calls
+type Options = HashMap<&'static str, &'static Value<'static>>;
+
+// -- Custom type for TransactionPackage
+type TransactionPackage = HashMap<String, OwnedValue>;
+
+// -- Custom type representing one member of the transaction returned by Goal.resolve()
+// -- it contains a typle of (id, action, reason, item attributes, tx_pkg)
+// -- See https://dnf5.readthedocs.io/en/latest/dnf_daemon/dnf5daemon_dbus_api.8.html#org.rpm.dnf.v0.Goal
+type TransactionItem = (String, String, String, HashMap<String, OwnedValue>, TransactionPackage);
+
+// endregion: --- Types
 
 // region:    --- Enums
 
-// from dnf5 source code:
-// https://github.com/rpm-software-management/dnf5/blob/3739c4a34db6e7abcd8b4faf0db7d5307f37d340/dnf5daemon-server/transaction.cpp#L30
-// https://github.com/rpm-software-management/dnf5/blob/3739c4a34db6e7abcd8b4faf0db7d5307f37d340/dnf5daemon-server/transaction.hpp#L30
-// Only a subset of RpmTransactionItemActions is used in dnfdaemon-server.
-
+/// Enum representing a transaction action to be performed on a package
+// -- check dnf5 source code:
+// -- https://github.com/rpm-software-management/dnf5/blob/3739c4a34db6e7abcd8b4faf0db7d5307f37d340/dnf5daemon-server/transaction.cpp#L30
+// -- https://github.com/rpm-software-management/dnf5/blob/3739c4a34db6e7abcd8b4faf0db7d5307f37d340/dnf5daemon-server/transaction.hpp#L30
+// -- Only a subset of RpmTransactionItemActions is used in dnfdaemon-server.
 #[derive(Debug)]
 pub enum TransactionAction {
     Install,
@@ -23,6 +38,7 @@ pub enum TransactionAction {
 }
 
 impl From<String> for TransactionAction {
+    /// Convert a string action into a TransactionAction enum
     fn from(action: String) -> Self {
         match action.to_uppercase().as_str() {
             "INSTALL" => TransactionAction::Install,
@@ -49,7 +65,7 @@ pub struct TransactionMember {
 
 impl TransactionMember {
     ///New TransactionMember from action, reason and tx_pkg hashmap return my Goal.resolve method
-    pub fn from(action: String, reason: String, tx_pkg: HashMap<String, OwnedValue>) -> Self {
+    pub fn from(action: String, reason: String, tx_pkg: TransactionPackage) -> Self {
         let sub_reason = String::try_from(tx_pkg.get("reason").unwrap().to_owned()).unwrap();
         let full_nevra = String::try_from(tx_pkg.get("full_nevra").unwrap().to_owned()).unwrap();
         let sub_action = if sub_reason == "None" || sub_reason == *reason {
@@ -75,17 +91,10 @@ pub struct TransactionResult {
     pub tx_members: Vec<TransactionMember>,
     pub result_code: u32,
 }
-// -- Transaction Result element type
-type TransactionResultElement = (
-    String,
-    String,
-    String,
-    HashMap<String, OwnedValue>,
-    HashMap<String, OwnedValue>,
-);
 
 impl TransactionResult {
-    pub fn from(txmbrs: Vec<(TransactionResultElement)>, result_code: u32) -> Option<Self> {
+    /// Create a TransactionResult from a vector of TransactionItems and a result code
+    pub fn from(txmbrs: Vec<(TransactionItem)>, result_code: u32) -> Option<Self> {
         let mut members: Vec<TransactionMember> = Vec::new();
         for (_, action, reason, _, tx_pkg) in txmbrs {
             let tx_mbr = TransactionMember::from(action.to_string(), reason.to_string(), tx_pkg.to_owned());
@@ -97,10 +106,12 @@ impl TransactionResult {
         })
     }
 
+    /// Check if the transaction was successful
     pub fn is_successful(&self) -> bool {
         self.result_code == 0
     }
 
+    /// Show the transaction members
     pub fn show(&self) {
         for mbr in &self.tx_members {
             println!("->> {mbr:?}");
@@ -126,21 +137,21 @@ impl<'a> Transaction<'a> {
     }
     /// Install packages in the transaction
     pub async fn install(&self, pkgs: &Vec<String>) -> Result<()> {
-        let options: std::collections::HashMap<&str, &zbus::zvariant::Value<'_>> = HashMap::new();
+        let options: Options = HashMap::new();
         self.dnf_daemon.rpm.install(pkgs, options.clone()).await.ok();
         Ok(())
     }
 
     /// Remove packages in the transaction
     pub async fn remove(&self, pkgs: &Vec<String>) -> Result<()> {
-        let options: std::collections::HashMap<&str, &zbus::zvariant::Value<'_>> = HashMap::new();
+        let options: Options = HashMap::new();
         self.dnf_daemon.rpm.remove(pkgs, options.clone()).await.ok();
         Ok(())
     }
 
     /// Resolve the transaction
     pub async fn resolve(&mut self) -> Result<()> {
-        let options: std::collections::HashMap<&str, &zbus::zvariant::Value<'_>> = HashMap::new();
+        let options: Options = HashMap::new();
 
         if let Ok(rc) = self.dnf_daemon.goal.resolve(options.clone()).await {
             self.transaction_result = TransactionResult::from(rc.0, rc.1);
@@ -164,7 +175,7 @@ impl<'a> Transaction<'a> {
     }
     /// Execute the transaction
     pub async fn execute(&mut self) -> Result<()> {
-        let options: std::collections::HashMap<&str, &zbus::zvariant::Value<'_>> = HashMap::new();
+        let options: Options = HashMap::new();
         if let Some(result) = &self.transaction_result
             && result.is_successful()
         {
