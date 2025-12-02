@@ -273,7 +273,7 @@ impl ListOptions {
         // Add a "<fieldname": Value(self.<fieldname>) entry to the map
         let pa = Value::new(self.package_attrs.iter().map(|attr| attr.to_string()).collect::<Vec<String>>());
         let scope = Value::new(self.scope.to_string());
-        options.insert("package_attr".to_string(), pa);
+        options.insert("package_attrs".to_string(), pa);
         options.insert("scope".to_string(), scope);
         insert_field!(options, self.patterns);
         insert_field!(options, self.icase);
@@ -387,7 +387,7 @@ pub async fn get_packages(
         .patterns(patterns.as_ref())
         .scope(scope)
         .build();
-    // debug!("{:?}", options.to_dbus());
+    // println!("{:?}", options.to_dbus());
 
     // Read packages from Rpm.list() and convert into DnfPackages
     let pkgs = daemon
@@ -396,6 +396,7 @@ pub async fn get_packages(
         .list(options.to_dbus())
         .await
         .expect("org.rpm.dnf.v0.Rpm.list failed");
+    // println!("Raw packages: {:?}", pkgs);
     build_packages(&pkgs)
 }
 
