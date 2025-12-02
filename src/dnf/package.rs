@@ -1,9 +1,12 @@
 use crate::dnf::daemon::DnfDaemon;
 use crate::dnf::proxy::ListResults;
 
+use derive_more::From;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use zbus::zvariant::{Error, OwnedValue, Type, Value};
+
+// region:    --- macroes
 
 /// Macro to convert a variant store under a given key in a HashMap into a given native type
 macro_rules! from_variant {
@@ -34,6 +37,171 @@ macro_rules! insert_field {
     };
 }
 
+// endregion: --- macroes
+
+// region:    --- PackageAttr
+
+#[derive(Debug, From, Serialize, Deserialize, Type)]
+pub enum PackageAttr {
+    Name,
+    Epoch,
+    Version,
+    Release,
+    Arch,
+    RepoId,
+    FromRepoId,
+    IsInstalled,
+    InstallSize,
+    DownloadSize,
+    Buildtime,
+    Sourcerpm,
+    Summary,
+    Url,
+    License,
+    Description,
+    Files,
+    Changelogs,
+    Provides,
+    Requires,
+    RequiresPre,
+    Conflicts,
+    Obsoletes,
+    Recommends,
+    Suggests,
+    Enhances,
+    Supplements,
+    Evr,
+    Nevra,
+    FullNevra,
+    Reason,
+    Vendor,
+    Group,
+}
+
+impl From<String> for PackageAttr {
+    fn from(attr: String) -> Self {
+        match attr.to_lowercase().as_str() {
+            "name" => PackageAttr::Name,
+            "epoch" => PackageAttr::Epoch,
+            "version" => PackageAttr::Version,
+            "release" => PackageAttr::Release,
+            "arch" => PackageAttr::Arch,
+            "repo_id" => PackageAttr::RepoId,
+            "from_repo_id" => PackageAttr::FromRepoId,
+            "is_installed" => PackageAttr::IsInstalled,
+            "install_size" => PackageAttr::InstallSize,
+            "download_size" => PackageAttr::DownloadSize,
+            "buildtime" => PackageAttr::Buildtime,
+            "sourcerpm" => PackageAttr::Sourcerpm,
+            "summary" => PackageAttr::Summary,
+            "url" => PackageAttr::Url,
+            "license" => PackageAttr::License,
+            "description" => PackageAttr::Description,
+            "files" => PackageAttr::Files,
+            "changelogs" => PackageAttr::Changelogs,
+            "provides" => PackageAttr::Provides,
+            "requires" => PackageAttr::Requires,
+            "requires_pre" => PackageAttr::RequiresPre,
+            "conflicts" => PackageAttr::Conflicts,
+            "obsoletes" => PackageAttr::Obsoletes,
+            "recommends" => PackageAttr::Recommends,
+            "suggests" => PackageAttr::Suggests,
+            "enhances" => PackageAttr::Enhances,
+            "supplements" => PackageAttr::Supplements,
+            "evr" => PackageAttr::Evr,
+            "nevra" => PackageAttr::Nevra,
+            "full_nevra" => PackageAttr::FullNevra,
+            "reason" => PackageAttr::Reason,
+            "vendor" => PackageAttr::Vendor,
+            "group" => PackageAttr::Group,
+            _ => PackageAttr::Name, // default to name
+        }
+    }
+}
+
+impl core::fmt::Display for PackageAttr {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let s = match self {
+            PackageAttr::Name => "name",
+            PackageAttr::Epoch => "epoch",
+            PackageAttr::Version => "version",
+            PackageAttr::Release => "release",
+            PackageAttr::Arch => "arch",
+            PackageAttr::RepoId => "repo_id",
+            PackageAttr::FromRepoId => "from_repo_id",
+            PackageAttr::IsInstalled => "is_installed",
+            PackageAttr::InstallSize => "install_size",
+            PackageAttr::DownloadSize => "download_size",
+            PackageAttr::Buildtime => "buildtime",
+            PackageAttr::Sourcerpm => "sourcerpm",
+            PackageAttr::Summary => "summary",
+            PackageAttr::Url => "url",
+            PackageAttr::License => "license",
+            PackageAttr::Description => "description",
+            PackageAttr::Files => "files",
+            PackageAttr::Changelogs => "changelogs",
+            PackageAttr::Provides => "provides",
+            PackageAttr::Requires => "requires",
+            PackageAttr::RequiresPre => "requires_pre",
+            PackageAttr::Conflicts => "conflicts",
+            PackageAttr::Obsoletes => "obsoletes",
+            PackageAttr::Recommends => "recommends",
+            PackageAttr::Suggests => "suggests",
+            PackageAttr::Enhances => "enhances",
+            PackageAttr::Supplements => "supplements",
+            PackageAttr::Evr => "evr",
+            PackageAttr::Nevra => "nevra",
+            PackageAttr::FullNevra => "full_nevra",
+            PackageAttr::Reason => "reason",
+            PackageAttr::Vendor => "vendor",
+            PackageAttr::Group => "group",
+        };
+        write!(f, "{s}")
+    }
+}
+
+// endregion: --- PackageAttr
+
+// region:    --- Scope
+
+#[derive(Debug, From, Serialize, Deserialize, Type)]
+pub enum Scope {
+    All,
+    Installed,
+    Available,
+    Upgrades,
+    Upgradable,
+}
+
+impl core::fmt::Display for Scope {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let s = match self {
+            Scope::All => "all",
+            Scope::Installed => "installed",
+            Scope::Available => "available",
+            Scope::Upgrades => "upgrades",
+            Scope::Upgradable => "upgradable",
+        };
+        write!(f, "{s}")
+    }
+}
+
+impl From<&str> for Scope {
+    fn from(s: &str) -> Self {
+        match s.to_lowercase().as_str() {
+            "all" => Scope::All,
+            "installed" => Scope::Installed,
+            "available" => Scope::Available,
+            "upgrades" => Scope::Upgrades,
+            "upgradable" => Scope::Upgradable,
+            _ => Scope::All, // default to all
+        }
+    }
+}
+
+// endregion: --- Scope
+
+// region:    --- DnfPackage
 /// a native rust struct to represent a dnf package
 /// it is designed to be used with get_packages
 #[derive(Debug)]
@@ -69,12 +237,16 @@ impl DnfPackage {
     }
 }
 
+// endregion: --- DnfPackage
+
+// region:    --- ListOptions
+
 /// Stucture with options for org.rpm.dnf.v0.rpm.Rpm.list(a(sv) options.)
 #[derive(Debug, Type, Deserialize, Serialize)]
 pub struct ListOptions {
-    package_attrs: Vec<String>,
+    package_attrs: Vec<PackageAttr>,
     patterns: Vec<String>,
-    scope: String,
+    scope: Scope,
     icase: bool,
     with_src: bool,
     with_nevra: bool,
@@ -99,9 +271,11 @@ impl ListOptions {
     pub fn to_dbus(&self) -> HashMap<String, Value<'_>> {
         let mut options = HashMap::new();
         // Add a "<fieldname": Value(self.<fieldname>) entry to the map
-        insert_field!(options, self.package_attrs);
+        let pa = Value::new(self.package_attrs.iter().map(|attr| attr.to_string()).collect::<Vec<String>>());
+        let scope = Value::new(self.scope.to_string());
+        options.insert("package_attr".to_string(), pa);
+        options.insert("scope".to_string(), scope);
         insert_field!(options, self.patterns);
-        insert_field!(options, self.scope);
         insert_field!(options, self.icase);
         insert_field!(options, self.with_src);
         insert_field!(options, self.with_nevra);
@@ -112,11 +286,15 @@ impl ListOptions {
     }
 }
 
+// -- TODO: scope should be an enum (“all”, “installed”, “available”, “upgrades”, “upgradable”)
+// -- TODO: package_attrs should be an enum ( name, epoch, version, release, arch, repo_id, from_repo_id, is_installed, install_size, download_size,
+// --  buildtime, sourcerpm, summary, url, license, description, files, changelogs, provides, requires, requires_pre, conflicts, obsoletes, recommends,
+// --  suggests, enhances, supplements, evr, nevra, full_nevra, reason, vendor, group.)
 /// Builder for setup ListOptions
 pub struct ListOptionsBuilder {
-    package_attrs: Vec<String>,
+    package_attrs: Vec<PackageAttr>,
     patterns: Vec<String>,
-    scope: String,
+    scope: Scope,
     icase: bool,
     with_src: bool,
     with_nevra: bool,
@@ -137,7 +315,7 @@ impl ListOptionsBuilder {
         ListOptionsBuilder {
             package_attrs: Vec::new(),
             patterns: Vec::new(),
-            scope: String::from("all"),
+            scope: Scope::All,
             icase: true,
             with_src: false,
             with_nevra: true,
@@ -148,9 +326,9 @@ impl ListOptionsBuilder {
     }
 
     /// Add attributes to return from the matched packages.
-    pub fn attrs(mut self, attrs: &Vec<String>) -> ListOptionsBuilder {
+    pub fn attrs(mut self, attrs: Vec<PackageAttr>) -> ListOptionsBuilder {
         for attr in attrs {
-            self.package_attrs.push(attr.to_owned());
+            self.package_attrs.push(attr);
         }
         self
     }
@@ -164,8 +342,8 @@ impl ListOptionsBuilder {
     }
 
     /// Add scope to search in (all, installed, available)
-    pub fn scope(mut self, scope: &str) -> ListOptionsBuilder {
-        self.scope = scope.to_owned();
+    pub fn scope(mut self, scope: Scope) -> ListOptionsBuilder {
+        self.scope = scope;
         self
     }
 
@@ -184,25 +362,28 @@ impl ListOptionsBuilder {
         }
     }
 }
+
+// endregion: --- ListOptions
+
 /// Get packages by calling org.rpm.dnf.v0.rpm.Rpm.list()
 pub async fn get_packages(
     daemon: impl AsRef<DnfDaemon>,
     patterns: impl AsRef<Vec<String>>,
-    scope: &str,
+    scope: Scope,
 ) -> Result<Vec<DnfPackage>, Error> {
     // Setup query options for use with org.rpm.dnf.v0.rpm.Rpm.list()
     // check here for details
     // https://dnf5.readthedocs.io/en/latest/dnf_daemon/dnf5daemon_dbus_api.8.html#org.rpm.dnf.v0.rpm.Rpm.list
-    let attrs: Vec<String> = vec![
-        "name".to_owned(),
-        "install_size".to_owned(),
-        "arch".to_owned(),
-        "evr".to_owned(),
-        "repo_id".to_owned(),
-        "is_installed".to_owned(),
+    let attrs: Vec<PackageAttr> = vec![
+        PackageAttr::Name,
+        PackageAttr::InstallSize,
+        PackageAttr::Arch,
+        PackageAttr::Evr,
+        PackageAttr::RepoId,
+        PackageAttr::IsInstalled,
     ];
     let options = ListOptions::builder()
-        .attrs(&attrs)
+        .attrs(attrs)
         .patterns(patterns.as_ref())
         .scope(scope)
         .build();
