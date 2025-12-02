@@ -136,9 +136,7 @@ impl DnfDaemon {
             Ok(self.connected)
         } else {
             warn!("org.rpm.dnf.v0 session is not open");
-            Err(Error::DnfDaemon(
-                "org.rpm.dnf.v0 session is not open".into(),
-            ))
+            Err(Error::DnfDaemon("org.rpm.dnf.v0 session is not open".into()))
         }
     }
 

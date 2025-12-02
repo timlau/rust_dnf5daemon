@@ -30,10 +30,7 @@ macro_rules! to_variant {
 /// to the map
 macro_rules! insert_field {
     ($map:expr, $self_:ident.$field:ident) => {
-        $map.insert(
-            stringify!($field).to_string(),
-            to_variant!($self_.$field.to_owned()),
-        );
+        $map.insert(stringify!($field).to_string(), to_variant!($self_.$field.to_owned()));
     };
 }
 

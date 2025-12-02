@@ -23,10 +23,7 @@ pub struct ListResults {
 pub trait SessionManager {
     /// close_session method
     #[zbus(name = "close_session")]
-    fn close_session(
-        &self,
-        session_object_path: &zbus::zvariant::ObjectPath<'_>,
-    ) -> zbus::Result<bool>;
+    fn close_session(&self, session_object_path: &zbus::zvariant::ObjectPath<'_>) -> zbus::Result<bool>;
 
     /// open_session method
     #[zbus(name = "open_session")]
@@ -215,10 +212,7 @@ pub trait Rpm {
 
     /// system_upgrade method
     #[zbus(name = "system_upgrade")]
-    fn system_upgrade(
-        &self,
-        options: std::collections::HashMap<&str, &zbus::zvariant::Value<'_>>,
-    ) -> zbus::Result<()>;
+    fn system_upgrade(&self, options: std::collections::HashMap<&str, &zbus::zvariant::Value<'_>>) -> zbus::Result<()>;
 
     /// upgrade method
     #[zbus(name = "upgrade")]
@@ -379,10 +373,7 @@ pub trait Goal {
 
     /// do_transaction method
     #[zbus(name = "do_transaction")]
-    fn do_transaction(
-        &self,
-        options: std::collections::HashMap<&str, &zbus::zvariant::Value<'_>>,
-    ) -> zbus::Result<()>;
+    fn do_transaction(&self, options: std::collections::HashMap<&str, &zbus::zvariant::Value<'_>>) -> zbus::Result<()>;
 
     /// get_transaction_problems method
     #[zbus(name = "get_transaction_problems")]
@@ -442,12 +433,7 @@ pub trait Offline {
 
     /// get_status method
     #[zbus(name = "get_status")]
-    fn get_status(
-        &self,
-    ) -> zbus::Result<(
-        bool,
-        std::collections::HashMap<String, zbus::zvariant::OwnedValue>,
-    )>;
+    fn get_status(&self) -> zbus::Result<(bool, std::collections::HashMap<String, zbus::zvariant::OwnedValue>)>;
 
     /// set_finish_action method
     #[zbus(name = "set_finish_action")]
@@ -480,10 +466,7 @@ pub trait History {
         &self,
         options: std::collections::HashMap<&str, &zbus::zvariant::Value<'_>>,
     ) -> zbus::Result<
-        std::collections::HashMap<
-            String,
-            Vec<std::collections::HashMap<String, zbus::zvariant::OwnedValue>>,
-        >,
+        std::collections::HashMap<String, Vec<std::collections::HashMap<String, zbus::zvariant::OwnedValue>>>,
     >;
 }
 

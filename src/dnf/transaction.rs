@@ -88,8 +88,7 @@ impl TransactionResult {
     pub fn from(txmbrs: Vec<(TransactionResultElement)>, result_code: u32) -> Option<Self> {
         let mut members: Vec<TransactionMember> = Vec::new();
         for (_, action, reason, _, tx_pkg) in txmbrs {
-            let tx_mbr =
-                TransactionMember::from(action.to_string(), reason.to_string(), tx_pkg.to_owned());
+            let tx_mbr = TransactionMember::from(action.to_string(), reason.to_string(), tx_pkg.to_owned());
             members.push(tx_mbr);
         }
         Some(Self {
@@ -128,11 +127,7 @@ impl<'a> Transaction<'a> {
     /// Install packages in the transaction
     pub async fn install(&self, pkgs: &Vec<String>) -> Result<()> {
         let options: std::collections::HashMap<&str, &zbus::zvariant::Value<'_>> = HashMap::new();
-        self.dnf_daemon
-            .rpm
-            .install(pkgs, options.clone())
-            .await
-            .ok();
+        self.dnf_daemon.rpm.install(pkgs, options.clone()).await.ok();
         Ok(())
     }
 
@@ -174,12 +169,7 @@ impl<'a> Transaction<'a> {
             && result.is_successful()
         {
             // everything is Ok, do transaction
-            let _rc = self
-                .dnf_daemon
-                .goal
-                .do_transaction(options.clone())
-                .await
-                .ok();
+            let _rc = self.dnf_daemon.goal.do_transaction(options.clone()).await.ok();
         }
         Ok(())
     }
