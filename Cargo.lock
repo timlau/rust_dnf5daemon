@@ -291,7 +291,7 @@ dependencies = [
 
 [[package]]
 name = "dnf5daemon"
-version = "0.1.0"
+version = "0.1.0-wip"
 dependencies = [
  "derive_more",
  "env_logger",

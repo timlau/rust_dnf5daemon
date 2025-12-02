@@ -1,7 +1,11 @@
 [package]
 name = "dnf5daemon"
-version = "0.1.0"
+version = "0.1.0-wip"
 edition = "2024"
+license = "MIT"
+authors = ["Tim Lauridsen"]
+description = "Rust DNF5 Dbus API Client Library"
+
 
 [lints.rust]
 unsafe_code = "forbid"
