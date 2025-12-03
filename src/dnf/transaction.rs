@@ -136,16 +136,16 @@ impl<'a> Transaction<'a> {
         }
     }
     /// Install packages in the transaction
-    pub async fn install(&self, pkgs: &Vec<String>) -> Result<()> {
+    pub async fn install(&self, pkgs: impl AsRef<Vec<String>>) -> Result<()> {
         let options: Options = HashMap::new();
-        self.dnf_daemon.rpm.install(pkgs, options.clone()).await.ok();
+        self.dnf_daemon.rpm.install(pkgs.as_ref(), options.clone()).await.ok();
         Ok(())
     }
 
     /// Remove packages in the transaction
-    pub async fn remove(&self, pkgs: &Vec<String>) -> Result<()> {
+    pub async fn remove(&self, pkgs: impl AsRef<Vec<String>>) -> Result<()> {
         let options: Options = HashMap::new();
-        self.dnf_daemon.rpm.remove(pkgs, options.clone()).await.ok();
+        self.dnf_daemon.rpm.remove(pkgs.as_ref(), options.clone()).await.ok();
         Ok(())
     }
 
