@@ -41,6 +41,9 @@ macro_rules! insert_field {
 
 // region:    --- PackageAttr
 
+/// Package attributes to use for defining return values from Rpm.list
+// https://dnf5.readthedocs.io/en/latest/dnf_daemon/dnf5daemon_dbus_api.8.html#org.rpm.dnf.v0.rpm.Rpm.list
+
 #[derive(Debug, From, Serialize, Deserialize, Type)]
 pub enum PackageAttr {
     Name,
@@ -79,6 +82,7 @@ pub enum PackageAttr {
 }
 
 impl From<String> for PackageAttr {
+    /// package attribute from String
     fn from(attr: String) -> Self {
         match attr.to_lowercase().as_str() {
             "name" => PackageAttr::Name,
@@ -120,6 +124,7 @@ impl From<String> for PackageAttr {
 }
 
 impl core::fmt::Display for PackageAttr {
+    /// return String representation of enum
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let s = match self {
             PackageAttr::Name => "name",
@@ -164,6 +169,9 @@ impl core::fmt::Display for PackageAttr {
 
 // region:    --- Scope
 
+/// Package scope for Rpm.List
+// https://dnf5.readthedocs.io/en/latest/dnf_daemon/dnf5daemon_dbus_api.8.html#org.rpm.dnf.v0.rpm.Rpm.list
+
 #[derive(Debug, From, Serialize, Deserialize, Type)]
 pub enum Scope {
     All,
@@ -174,6 +182,7 @@ pub enum Scope {
 }
 
 impl core::fmt::Display for Scope {
+    /// Sting representation
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let s = match self {
             Scope::All => "all",
@@ -187,6 +196,7 @@ impl core::fmt::Display for Scope {
 }
 
 impl From<&str> for Scope {
+    /// Scope from string
     fn from(s: &str) -> Self {
         match s.to_lowercase().as_str() {
             "all" => Scope::All,
@@ -374,6 +384,7 @@ pub async fn get_packages(
     // Setup query options for use with org.rpm.dnf.v0.rpm.Rpm.list()
     // check here for details
     // https://dnf5.readthedocs.io/en/latest/dnf_daemon/dnf5daemon_dbus_api.8.html#org.rpm.dnf.v0.rpm.Rpm.list
+    // NOTE: These must match the field definded in [DnfPackage]
     let attrs: Vec<PackageAttr> = vec![
         PackageAttr::Name,
         PackageAttr::InstallSize,
