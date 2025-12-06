@@ -419,3 +419,90 @@ fn build_packages(pkgs: &ListResults) -> Result<Vec<DnfPackage>, Error> {
     }
     Ok(packages)
 }
+
+// Unit tests for ListOptions and ListOptionsBuilder
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn default_builder_has_expected_defaults() {
+        let opts = ListOptions::builder().build();
+
+        // Builder defaults
+        assert_eq!(opts.package_attrs.len(), 0);
+        assert_eq!(opts.patterns.len(), 0);
+        assert_eq!(opts.scope.to_string(), Scope::All.to_string());
+        assert!(opts.icase);
+        assert!(!opts.with_src);
+        assert!(opts.with_nevra);
+        assert!(!opts.with_provides);
+        assert!(!opts.with_filenames);
+        assert!(!opts.with_binaries);
+    }
+
+    #[test]
+    fn builder_attrs_patterns_scope_and_appending() {
+        let patterns = vec!["pkg*".to_string()];
+
+        let opts = ListOptions::builder()
+            .attrs(vec![PackageAttr::Name, PackageAttr::Arch])
+            .patterns(&patterns)
+            .scope(Scope::Installed)
+            .build();
+
+        // package_attrs were set
+        let pa: Vec<String> = opts.package_attrs.iter().map(|a| a.to_string()).collect();
+        assert_eq!(pa, vec!["name".to_string(), "arch".to_string()]);
+
+        // patterns were set
+        assert_eq!(opts.patterns, patterns);
+
+        // scope was set
+        assert_eq!(opts.scope.to_string(), Scope::Installed.to_string());
+
+        // appending attrs by calling attrs twice
+        let opts2 = ListOptions::builder()
+            .attrs(vec![PackageAttr::Name])
+            .attrs(vec![PackageAttr::Evr])
+            .build();
+        let pa2: Vec<String> = opts2.package_attrs.iter().map(|a| a.to_string()).collect();
+        assert_eq!(pa2, vec!["name".to_string(), "evr".to_string()]);
+    }
+
+    #[test]
+    fn listoptions_to_dbus_contains_expected_entries() {
+        let patterns = vec!["foo*".to_string()];
+        let opts = ListOptions::builder()
+            .attrs(vec![PackageAttr::Name, PackageAttr::Arch])
+            .patterns(&patterns)
+            .scope(Scope::Installed)
+            .build();
+
+        let dbus = opts.to_dbus();
+
+        // keys exist
+        assert!(dbus.contains_key("package_attrs"));
+        assert!(dbus.contains_key("scope"));
+        assert!(dbus.contains_key("patterns"));
+        assert!(dbus.contains_key("icase"));
+        assert!(dbus.contains_key("with_nevra"));
+
+        // string representations contain expected substrings
+        let pa = format!("{}", dbus.get("package_attrs").unwrap());
+        assert!(pa.contains("name"));
+        assert!(pa.contains("arch"));
+
+        let scope = format!("{}", dbus.get("scope").unwrap());
+        assert!(scope.to_lowercase().contains("installed"));
+
+        let pats = format!("{}", dbus.get("patterns").unwrap());
+        assert!(pats.contains("foo"));
+
+        let icase = format!("{}", dbus.get("icase").unwrap());
+        assert!(icase.contains("true"));
+
+        let nevra = format!("{}", dbus.get("with_nevra").unwrap());
+        assert!(nevra.contains("true"));
+    }
+}
