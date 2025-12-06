@@ -11,14 +11,14 @@ async fn daemon_test() {
         let rc = dnf_daemon.base.read_all_repos().await.ok().unwrap();
         assert!(rc);
         // Check that we can get a get some packages, using the high-level API
-        let pattern: Vec<String> = vec!["dnf5*".to_owned()];
-        let packages = &get_packages(&dnf_daemon, &pattern, Scope::All)
+        let pattern: Vec<String> = vec![String::from("dnf5*")];
+        let packages = get_packages(&dnf_daemon, pattern, Scope::All)
             .await
             .expect("Error in get_packages");
-        for pkg in packages {
+        for pkg in &packages {
             println!("{:?}", pkg);
         }
-        assert!(packages.is_empty());
+        assert!(!packages.is_empty());
         // check that we can manually close the session
         dnf_daemon.close().await.unwrap();
         assert!(!dnf_daemon.is_connected());
