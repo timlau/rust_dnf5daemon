@@ -20,7 +20,7 @@
 //! use dnf5daemon::package::get_packages;
 //! use dnf5daemon::DnfDaemon;
 //! use dnf5daemon::package::{DnfPackage, Scope};
-//! 
+//!
 //!
 //! #[tokio::main]
 //! async fn main() -> Result<(), Box<dyn Error>> {

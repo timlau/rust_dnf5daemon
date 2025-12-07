@@ -553,7 +553,10 @@ mod tests {
         pkg.insert("evr".to_string(), Value::new("1.0-1").try_into_owned().unwrap());
         pkg.insert("repo_id".to_string(), Value::new("fedora").try_into_owned().unwrap());
         pkg.insert("is_installed".to_string(), Value::new(true).try_into_owned().unwrap());
-        pkg.insert("install_size".to_string(), Value::new(1024u64).try_into_owned().unwrap());
+        pkg.insert(
+            "install_size".to_string(),
+            Value::new(1024u64).try_into_owned().unwrap(),
+        );
 
         let dnf_pkg = DnfPackage::from(&pkg).unwrap();
         assert_eq!(dnf_pkg.name, "testpkg");
