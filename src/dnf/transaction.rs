@@ -155,6 +155,13 @@ impl<'a> Transaction<'a> {
         self.dnf_daemon.rpm.upgrade(pkgs.as_ref(), options).await.ok();
         Ok(())
     }
+
+    /// Reinstall packages in the transaction
+    pub async fn reinstall(&self, pkgs: impl AsRef<Vec<String>>) -> Result<()> {
+        let options: Options = HashMap::new();
+        self.dnf_daemon.rpm.reinstall(pkgs.as_ref(), options).await.ok();
+        Ok(())
+    }
     /// Resolve the transaction
     pub async fn resolve(&mut self) -> Result<()> {
         let options: Options = HashMap::new();
