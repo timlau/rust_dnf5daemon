@@ -1,3 +1,4 @@
+/// Example of how to list packages matching a 
 use dnf5daemon::DnfDaemon;
 use dnf5daemon::package::{Scope, get_packages};
 use std::error::Error;
