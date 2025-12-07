@@ -26,3 +26,24 @@ impl core::fmt::Display for Error {
 
 impl std::error::Error for Error {}
 // endregion: --- Error
+
+// region:    --- Unit Tests
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn error_display() {
+        let err = Error::TransactionNotResolved("test message".to_string());
+        assert_eq!(format!("{}", err), "TransactionNotResolved(\"test message\")");
+
+        let err2 = Error::InvalidTransactionAction("invalid action".to_string());
+        assert_eq!(format!("{}", err2), "InvalidTransactionAction(\"invalid action\")");
+
+        let err3 = Error::DnfDaemon("connection failed".to_string());
+        assert_eq!(format!("{}", err3), "DnfDaemon(\"connection failed\")");
+    }
+}
+
+// endregion: --- Unit Tests

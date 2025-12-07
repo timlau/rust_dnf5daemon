@@ -1,9 +1,9 @@
 use dnf5daemon::DnfDaemon;
 use dnf5daemon::package::{Scope, get_packages};
+use dnf5daemon::transaction::Transaction;
 
 #[tokio::test]
 async fn daemon_test() {
-    env_logger::init();
     // Check that new session can be opened.
     if let Ok(mut dnf_daemon) = DnfDaemon::default().await {
         assert!(dnf_daemon.is_connected());
@@ -25,4 +25,42 @@ async fn daemon_test() {
     } else {
         println!("Error in creating dbus connection");
     };
+}
+
+#[tokio::test]
+async fn transaction_operations_test() {
+    env_logger::init();
+    if let Ok(mut dnf_daemon) = DnfDaemon::default().await {
+        let mut transaction = Transaction::new(&dnf_daemon);
+
+        // Test install (dry run, don't actually install)
+        let packages = vec!["nonexistent-package".to_string()];
+        // Note: These operations will fail in resolve/execute if packages don't exist,
+        // but we're testing that the methods exist and can be called
+        let result = transaction.install(&packages).await;
+        assert!(result.is_ok());
+
+        // Test remove
+        let result = transaction.remove(&packages).await;
+        assert!(result.is_ok());
+
+        // Test update
+        let result = transaction.update(&packages).await;
+        assert!(result.is_ok());
+
+        // Test reinstall
+        let result = transaction.reinstall(&packages).await;
+        assert!(result.is_ok());
+
+        // Test resolve (may fail due to no valid packages, but tests the method)
+        let resolve_result = transaction.resolve().await;
+        // We don't assert success here as it depends on package existence
+
+        // Test show (should not panic)
+        transaction.show();
+
+        dnf_daemon.close().await.unwrap();
+    } else {
+        println!("Skipping transaction test: cannot connect to dnf5daemon-server");
+    }
 }

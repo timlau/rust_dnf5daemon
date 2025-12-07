@@ -44,7 +44,7 @@ macro_rules! insert_field {
 /// Package attributes to use for defining return values from Rpm.list
 // https://dnf5.readthedocs.io/en/latest/dnf_daemon/dnf5daemon_dbus_api.8.html#org.rpm.dnf.v0.rpm.Rpm.list
 
-#[derive(Debug, From, Serialize, Deserialize, Type)]
+#[derive(Debug, PartialEq, From, Serialize, Deserialize, Type)]
 pub enum PackageAttr {
     Name,
     Epoch,
@@ -172,7 +172,7 @@ impl core::fmt::Display for PackageAttr {
 /// Package scope for Rpm.List
 // https://dnf5.readthedocs.io/en/latest/dnf_daemon/dnf5daemon_dbus_api.8.html#org.rpm.dnf.v0.rpm.Rpm.list
 
-#[derive(Debug, From, Serialize, Deserialize, Type)]
+#[derive(Debug, PartialEq, From, Serialize, Deserialize, Type)]
 pub enum Scope {
     All,
     Installed,
@@ -504,5 +504,76 @@ mod tests {
 
         let nevra = format!("{}", dbus.get("with_nevra").unwrap());
         assert!(nevra.contains("true"));
+    }
+
+    #[test]
+    fn package_attr_from_string() {
+        assert_eq!(PackageAttr::from("name".to_string()), PackageAttr::Name);
+        assert_eq!(PackageAttr::from("NAME".to_string()), PackageAttr::Name);
+        assert_eq!(PackageAttr::from("arch".to_string()), PackageAttr::Arch);
+        assert_eq!(PackageAttr::from("full_nevra".to_string()), PackageAttr::FullNevra);
+        assert_eq!(PackageAttr::from("invalid".to_string()), PackageAttr::Name); // default
+    }
+
+    #[test]
+    fn package_attr_display() {
+        assert_eq!(format!("{}", PackageAttr::Name), "name");
+        assert_eq!(format!("{}", PackageAttr::Arch), "arch");
+        assert_eq!(format!("{}", PackageAttr::FullNevra), "full_nevra");
+    }
+
+    #[test]
+    fn scope_from_str() {
+        assert_eq!(Scope::from("all"), Scope::All);
+        assert_eq!(Scope::from("ALL"), Scope::All);
+        assert_eq!(Scope::from("installed"), Scope::Installed);
+        assert_eq!(Scope::from("available"), Scope::Available);
+        assert_eq!(Scope::from("upgrades"), Scope::Upgrades);
+        assert_eq!(Scope::from("upgradable"), Scope::Upgradable);
+        assert_eq!(Scope::from("invalid"), Scope::All); // default
+    }
+
+    #[test]
+    fn scope_display() {
+        assert_eq!(format!("{}", Scope::All), "all");
+        assert_eq!(format!("{}", Scope::Installed), "installed");
+        assert_eq!(format!("{}", Scope::Available), "available");
+        assert_eq!(format!("{}", Scope::Upgrades), "upgrades");
+        assert_eq!(format!("{}", Scope::Upgradable), "upgradable");
+    }
+
+    #[test]
+    fn dnf_package_from_valid_data() {
+        use std::collections::HashMap;
+        use zbus::zvariant::OwnedValue;
+
+        let mut pkg = HashMap::new();
+        pkg.insert("name".to_string(), Value::new("testpkg").try_into_owned().unwrap());
+        pkg.insert("arch".to_string(), Value::new("x86_64").try_into_owned().unwrap());
+        pkg.insert("evr".to_string(), Value::new("1.0-1").try_into_owned().unwrap());
+        pkg.insert("repo_id".to_string(), Value::new("fedora").try_into_owned().unwrap());
+        pkg.insert("is_installed".to_string(), Value::new(true).try_into_owned().unwrap());
+        pkg.insert("install_size".to_string(), Value::new(1024u64).try_into_owned().unwrap());
+
+        let dnf_pkg = DnfPackage::from(&pkg).unwrap();
+        assert_eq!(dnf_pkg.name, "testpkg");
+        assert_eq!(dnf_pkg.arch, "x86_64");
+        assert_eq!(dnf_pkg.evr, "1.0-1");
+        assert_eq!(dnf_pkg.repo_id, "fedora");
+        assert!(dnf_pkg.is_installed);
+        assert_eq!(dnf_pkg.size, 1024);
+    }
+
+    #[test]
+    fn dnf_package_from_invalid_data() {
+        use std::collections::HashMap;
+        use zbus::zvariant::OwnedValue;
+
+        let mut pkg = HashMap::new();
+        // Missing required fields
+        pkg.insert("name".to_string(), Value::new("testpkg").try_into_owned().unwrap());
+
+        let result = DnfPackage::from(&pkg);
+        assert!(result.is_err());
     }
 }

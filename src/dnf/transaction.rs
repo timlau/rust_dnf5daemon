@@ -27,7 +27,7 @@ type TransactionItem = (String, String, String, HashMap<String, OwnedValue>, Tra
 // -- https://github.com/rpm-software-management/dnf5/blob/3739c4a34db6e7abcd8b4faf0db7d5307f37d340/dnf5daemon-server/transaction.cpp#L30
 // -- https://github.com/rpm-software-management/dnf5/blob/3739c4a34db6e7abcd8b4faf0db7d5307f37d340/dnf5daemon-server/transaction.hpp#L30
 // -- Only a subset of RpmTransactionItemActions is used in dnfdaemon-server.
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum TransactionAction {
     Install,
     Upgrade,
@@ -207,3 +207,121 @@ impl<'a> Transaction<'a> {
 }
 
 // endregion: --- Transaction
+
+// region:    --- Unit Tests
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn transaction_action_from_string() {
+        assert_eq!(
+            TransactionAction::from("INSTALL".to_string()),
+            TransactionAction::Install
+        );
+        assert_eq!(
+            TransactionAction::from("install".to_string()),
+            TransactionAction::Install
+        );
+        assert_eq!(
+            TransactionAction::from("UPGRADE".to_string()),
+            TransactionAction::Upgrade
+        );
+        assert_eq!(
+            TransactionAction::from("upgrade".to_string()),
+            TransactionAction::Upgrade
+        );
+        assert_eq!(
+            TransactionAction::from("DOWNGRADE".to_string()),
+            TransactionAction::Downgrade
+        );
+        assert_eq!(
+            TransactionAction::from("downgrade".to_string()),
+            TransactionAction::Downgrade
+        );
+        assert_eq!(
+            TransactionAction::from("REINSTALL".to_string()),
+            TransactionAction::Reinstall
+        );
+        assert_eq!(
+            TransactionAction::from("reinstall".to_string()),
+            TransactionAction::Reinstall
+        );
+        assert_eq!(TransactionAction::from("REMOVE".to_string()), TransactionAction::Remove);
+        assert_eq!(TransactionAction::from("remove".to_string()), TransactionAction::Remove);
+        assert_eq!(
+            TransactionAction::from("UNKNOWN".to_string()),
+            TransactionAction::Unknown
+        );
+        assert_eq!(
+            TransactionAction::from("invalid".to_string()),
+            TransactionAction::Unknown
+        );
+    }
+
+    #[test]
+    fn transaction_member_from() {
+        use std::collections::HashMap;
+        use zbus::zvariant::Value;
+
+        let mut tx_pkg = HashMap::new();
+        let value = Value::new("user");
+        let ow = Value::new("user").try_to_owned().unwrap();
+        tx_pkg.insert("reason".to_string(), Value::new("user").try_to_owned().unwrap());
+        tx_pkg.insert(
+            "full_nevra".to_string(),
+            Value::new("package-1.0-1.x86_64").try_to_owned().unwrap(),
+        );
+
+        let member = TransactionMember::from("Install".to_string(), "user".to_string(), tx_pkg);
+        assert_eq!(member.action, TransactionAction::Install);
+        assert_eq!(member.reason, "user");
+        assert_eq!(member.nevra, "package-1.0-1.x86_64");
+        assert_eq!(member.sub_action, None);
+
+        // Test with sub_reason
+        let mut tx_pkg2 = HashMap::new();
+        tx_pkg2.insert("reason".to_string(), Value::new("dependency").try_to_owned().unwrap());
+        tx_pkg2.insert(
+            "full_nevra".to_string(),
+            Value::new("dep-2.0-1.x86_64").try_to_owned().unwrap(),
+        );
+
+        let member2 = TransactionMember::from("Install".to_string(), "user".to_string(), tx_pkg2);
+        assert_eq!(member2.sub_action, Some("dependency".to_string()));
+    }
+
+    #[test]
+    fn transaction_result_from_and_methods() {
+        use std::collections::HashMap;
+        use zbus::zvariant::Value;
+
+        let mut tx_pkg = HashMap::new();
+        tx_pkg.insert("reason".to_string(), Value::from("user").try_into_owned().unwrap());
+        tx_pkg.insert(
+            "full_nevra".to_string(),
+            Value::from("package-1.0-1.x86_64").try_into_owned().unwrap(),
+        );
+
+        let tx_item = (
+            "1".to_string(),
+            "Install".to_string(),
+            "user".to_string(),
+            HashMap::new(),
+            tx_pkg,
+        );
+        let tx_items = vec![tx_item];
+
+        let result = TransactionResult::from(tx_items, 0).unwrap();
+        assert!(result.is_successful());
+        assert_eq!(result.result_code, 0);
+        assert_eq!(result.tx_members.len(), 1);
+
+        let failed_result = TransactionResult::from(vec![], 1).unwrap();
+        assert!(!failed_result.is_successful());
+        assert_eq!(failed_result.result_code, 1);
+    }
+}
+
+// endregion: --- Unit Tests

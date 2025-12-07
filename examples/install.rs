@@ -1,3 +1,4 @@
+/// Example of how to install a package
 use dnf5daemon::transaction::Transaction;
 use dnf5daemon::{DnfDaemon, Error, Result};
 
