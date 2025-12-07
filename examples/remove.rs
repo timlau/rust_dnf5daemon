@@ -1,3 +1,4 @@
+/// Example of how to remove an installed package.
 use dnf5daemon::transaction::Transaction;
 use dnf5daemon::{DnfDaemon, Error, Result};
 
