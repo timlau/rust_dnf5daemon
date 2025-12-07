@@ -138,17 +138,23 @@ impl<'a> Transaction<'a> {
     /// Install packages in the transaction
     pub async fn install(&self, pkgs: impl AsRef<Vec<String>>) -> Result<()> {
         let options: Options = HashMap::new();
-        self.dnf_daemon.rpm.install(pkgs.as_ref(), options.clone()).await.ok();
+        self.dnf_daemon.rpm.install(pkgs.as_ref(), options).await.ok();
         Ok(())
     }
 
     /// Remove packages in the transaction
     pub async fn remove(&self, pkgs: impl AsRef<Vec<String>>) -> Result<()> {
         let options: Options = HashMap::new();
-        self.dnf_daemon.rpm.remove(pkgs.as_ref(), options.clone()).await.ok();
+        self.dnf_daemon.rpm.remove(pkgs.as_ref(), options).await.ok();
         Ok(())
     }
 
+    /// Update packages in the transaction
+    pub async fn update(&self, pkgs: impl AsRef<Vec<String>>) -> Result<()> {
+        let options: Options = HashMap::new();
+        self.dnf_daemon.rpm.upgrade(pkgs.as_ref(), options).await.ok();
+        Ok(())
+    }
     /// Resolve the transaction
     pub async fn resolve(&mut self) -> Result<()> {
         let options: Options = HashMap::new();
