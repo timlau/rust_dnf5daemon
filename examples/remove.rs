@@ -7,7 +7,7 @@ async fn main() -> Result<()> {
     if let Ok(dnf_daemon) = DnfDaemon::default().await {
         let _rc = dnf_daemon.base.read_all_repos().await.ok().unwrap();
         let pkgs: Vec<String> = vec![String::from("0xFFFF")];
-        println!("->> Installing packages {:?}", pkgs);
+        println!("->> Remove packages {:?}", pkgs);
         let mut transaction = Transaction::new(&dnf_daemon);
         transaction.remove(pkgs).await.ok();
         match transaction.resolve().await {

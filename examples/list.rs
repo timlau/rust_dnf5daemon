@@ -1,10 +1,9 @@
 /// Example of how to list packages matching a
-use dnf5daemon::DnfDaemon;
 use dnf5daemon::package::{Scope, get_packages};
-use std::error::Error;
+use dnf5daemon::{DnfDaemon, Error, Result};
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn Error>> {
+async fn main() -> Result<()> {
     if let Ok(dnf_daemon) = DnfDaemon::default().await {
         let rc = dnf_daemon.base.read_all_repos().await.ok().unwrap();
         println!("Read all repos returned: {:?}", rc);
