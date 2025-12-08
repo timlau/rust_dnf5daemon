@@ -32,8 +32,13 @@ macro_rules! to_variant {
 /// insert_field! (map, self.fieldname) will add a "<fieldname>": Value(self.<fieldname>) entry
 /// to the map
 macro_rules! insert_field {
+    // handle the (map, self.variable) case (struct member)
     ($map:expr, $self_:ident.$field:ident) => {
         $map.insert(stringify!($field).to_string(), to_variant!($self_.$field.to_owned()));
+    };
+    // handle the (map, value) case (other variable)
+    ($map:expr, $field:ident) => {
+        $map.insert(stringify!($field).to_string(), to_variant!($field.to_owned()));
     };
 }
 
@@ -280,11 +285,10 @@ impl ListOptions {
     /// Generate a HashMap with key/value (as variant) pairs to use for Dbus
     pub fn to_dbus(&self) -> HashMap<String, Value<'_>> {
         let mut options = HashMap::new();
-        // Add a "<fieldname": Value(self.<fieldname>) entry to the map
-        let pa = Value::new(self.package_attrs.iter().map(|attr| attr.to_string()).collect::<Vec<String>>());
-        let scope = Value::new(self.scope.to_string());
-        options.insert("package_attrs".to_string(), pa);
-        options.insert("scope".to_string(), scope);
+        let package_attrs = self.package_attrs.iter().map(|attr| attr.to_string()).collect::<Vec<String>>();
+        let scope = self.scope.to_string();
+        insert_field!(options, package_attrs);
+        insert_field!(options, scope);
         insert_field!(options, self.patterns);
         insert_field!(options, self.icase);
         insert_field!(options, self.with_src);
@@ -578,5 +582,32 @@ mod tests {
 
         let result = DnfPackage::from(&pkg);
         assert!(result.is_err());
+    }
+
+    struct TestStruct {
+        item: String,
+    }
+
+    #[test]
+    // Test the insert_field, from_variant and to_variant macroes (to_variant is tested indirectly by insert_field)
+    fn macroes() {
+        let value = "Test";
+        let mut map = HashMap::new();
+        // insert value into Hashmap as a variant (Value<_>) with the same key as the variable name
+        // Hashmap<"value",Value("Test")>
+        insert_field!(map, value);
+        assert!(map.len() == 1);
+        // get the content of the "value" key in the HashMap and convert it to a String
+        let map_value = from_variant!(map, String, "value").unwrap();
+        assert_eq!(map_value, value.to_string());
+        // Test insert with a struct value test_struct.item shoud be inserted under key = item.
+        // Hashmap<"item",Value("test")>
+        let test_struct = TestStruct {
+            item: "test".to_string(),
+        };
+        insert_field!(map, test_struct.item);
+        assert!(map.len() == 2);
+        let map_value = from_variant!(map, String, "item").unwrap();
+        assert_eq!(map_value, "test".to_string());
     }
 }
