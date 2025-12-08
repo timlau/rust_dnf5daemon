@@ -31,6 +31,10 @@ cargo run --example install
 cargo run --example remove
 ```
 
+### Example to use the transaction API to re-install the 0xFFFF package
+```rust
+cargo run --example reinstall
+```
 ## Links
 
 - [Dnf5 dbus API](https://dnf5.readthedocs.io/en/latest/dnf_daemon/dnf5daemon_dbus_api.8.html)
