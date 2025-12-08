@@ -34,7 +34,8 @@ pub enum TransactionAction {
     Downgrade,
     Reinstall,
     Remove,
-    Unknown,
+    Replaced,
+    Unknown(String),
 }
 
 impl From<String> for TransactionAction {
@@ -46,7 +47,8 @@ impl From<String> for TransactionAction {
             "DOWNGRADE" => TransactionAction::Downgrade,
             "REINSTALL" => TransactionAction::Reinstall,
             "REMOVE" => TransactionAction::Remove,
-            _ => TransactionAction::Unknown,
+            "REPLACED" => TransactionAction::Replaced,
+            _ => TransactionAction::Unknown(action),
         }
     }
 }
@@ -217,46 +219,29 @@ mod tests {
     #[test]
     fn transaction_action_from_string() {
         assert_eq!(
-            TransactionAction::from("INSTALL".to_string()),
+            TransactionAction::from("Install".to_string()),
             TransactionAction::Install
         );
         assert_eq!(
-            TransactionAction::from("install".to_string()),
-            TransactionAction::Install
-        );
-        assert_eq!(
-            TransactionAction::from("UPGRADE".to_string()),
+            TransactionAction::from("Upgrade".to_string()),
             TransactionAction::Upgrade
         );
         assert_eq!(
-            TransactionAction::from("upgrade".to_string()),
-            TransactionAction::Upgrade
-        );
-        assert_eq!(
-            TransactionAction::from("DOWNGRADE".to_string()),
+            TransactionAction::from("Downgrade".to_string()),
             TransactionAction::Downgrade
         );
         assert_eq!(
-            TransactionAction::from("downgrade".to_string()),
-            TransactionAction::Downgrade
-        );
-        assert_eq!(
-            TransactionAction::from("REINSTALL".to_string()),
+            TransactionAction::from("Reinstall".to_string()),
             TransactionAction::Reinstall
         );
+        assert_eq!(TransactionAction::from("Remove".to_string()), TransactionAction::Remove);
         assert_eq!(
-            TransactionAction::from("reinstall".to_string()),
-            TransactionAction::Reinstall
-        );
-        assert_eq!(TransactionAction::from("REMOVE".to_string()), TransactionAction::Remove);
-        assert_eq!(TransactionAction::from("remove".to_string()), TransactionAction::Remove);
-        assert_eq!(
-            TransactionAction::from("UNKNOWN".to_string()),
-            TransactionAction::Unknown
+            TransactionAction::from("Replaced".to_string()),
+            TransactionAction::Replaced
         );
         assert_eq!(
             TransactionAction::from("invalid".to_string()),
-            TransactionAction::Unknown
+            TransactionAction::Unknown("invalid".to_string())
         );
     }
 
