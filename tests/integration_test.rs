@@ -1,6 +1,6 @@
-use dnf5daemon::DnfDaemon;
 use dnf5daemon::package::{Scope, get_packages};
 use dnf5daemon::transaction::Transaction;
+use dnf5daemon::{DnfDaemon, Error};
 
 #[tokio::test]
 async fn daemon_test() {
@@ -29,7 +29,6 @@ async fn daemon_test() {
 
 #[tokio::test]
 async fn transaction_operations_test() {
-    env_logger::init();
     if let Ok(mut dnf_daemon) = DnfDaemon::default().await {
         let mut transaction = Transaction::new(&dnf_daemon);
 
@@ -52,13 +51,12 @@ async fn transaction_operations_test() {
         let result = transaction.reinstall(&packages).await;
         assert!(result.is_ok());
 
-        // Test resolve (may fail due to no valid packages, but tests the method)
+        // The resolve method should return an error if the transaction is not resolved
         let resolve_result = transaction.resolve().await;
-        // We don't assert success here as it depends on package existence
+        assert!(matches!(resolve_result, Err(Error::TransactionNotResolved(_))));
 
         // Test show (should not panic)
         transaction.show();
-
         dnf_daemon.close().await.unwrap();
     } else {
         println!("Skipping transaction test: cannot connect to dnf5daemon-server");

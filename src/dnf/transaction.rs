@@ -168,7 +168,7 @@ impl<'a> Transaction<'a> {
     pub async fn resolve(&mut self) -> Result<()> {
         let options: Options = HashMap::new();
 
-        if let Ok(rc) = self.dnf_daemon.goal.resolve(options.clone()).await {
+        if let Ok(rc) = self.dnf_daemon.goal.resolve(options).await {
             self.transaction_result = TransactionResult::from(rc.0, rc.1);
             if let Some(result) = &self.transaction_result
                 && !result.is_successful()
